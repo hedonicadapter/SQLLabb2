@@ -1,0 +1,25 @@
+﻿@page "/stores"
+@using BlazorApp2.Models
+@using BlazorApp2.Data
+@using Microsoft.EntityFrameworkCore
+@inject Labb1DbContext Context;
+
+<h3>Stores</h3>
+
+@code {
+    private List<Models.Store> Stores;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Stores = await Context.Stores.ToListAsync();
+    }
+}
+
+@if (Stores != null && Stores.Count > 0) {
+    foreach (Models.Store store in Stores)
+    {
+        <div>
+            <a href="stores/@store.StoreName">@store.StoreName</a>
+        </div>
+    }
+}
