@@ -1,7 +1,4 @@
-﻿
-navigation.addEventListener("navigate", ()=>{
-    
-})
+﻿// Called from blazor
 function startTransition(){
     const transitionWrapper = document.querySelector('#transition-wrapper');
     if (!transitionWrapper) return;

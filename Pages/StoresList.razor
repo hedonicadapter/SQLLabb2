@@ -4,7 +4,6 @@
 @using Microsoft.EntityFrameworkCore
 @inject Labb1DbContext Context;
 
-<h3>Stores</h3>
 
 @code {
     private List<Models.Store> Stores;
@@ -15,6 +14,8 @@
     }
 }
 
+<TransitionWrapper>
+<h3>Stores</h3>
 @if (Stores != null && Stores.Count > 0) {
     foreach (Models.Store store in Stores)
     {
@@ -23,3 +24,4 @@
         </div>
     }
 }
+</TransitionWrapper>

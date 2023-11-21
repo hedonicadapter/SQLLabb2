@@ -2,11 +2,10 @@
 @using BlazorApp2.Models
 @using BlazorApp2.Data
 @inject Labb1DbContext Context;
-@inject IJSRuntime JS;
 
 
-<div id="transition-wrapper" style=" opacity: 0;
-                transition: opacity 0.5s ease-in-out;">
+
+<TransitionWrapper>
     <h3>@_store?.StoreName</h3>
 
     <h4>Inventory</h4>
@@ -21,9 +20,8 @@
                 </li>
             }
         </ol>
-    
     }
-</div>
+</TransitionWrapper>
 
 
 @code {
@@ -38,15 +36,6 @@
 
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        {
-            if (firstRender)
-            {
-                await JS.InvokeVoidAsync("startTransition");
-            }
-            
-        }
-    }
+    
     
 }

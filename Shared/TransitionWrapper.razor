@@ -1,0 +1,23 @@
+﻿@inject IJSRuntime JS;
+
+
+<div id="transition-wrapper" style=" opacity: 0;
+                transition: opacity 0.5s ease-in-out;">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        {
+            if (firstRender)
+            {
+                await JS.InvokeVoidAsync("startTransition");
+            }
+            
+        }
+    }
+}
