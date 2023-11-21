@@ -25,4 +25,8 @@
       <Folder Include="Models\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Include="wwwroot\JS\TransitionFunctions.js" />
+    </ItemGroup>
+
 </Project>

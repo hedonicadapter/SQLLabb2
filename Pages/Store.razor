@@ -1,6 +1,52 @@
-﻿@page "/stores/{StoreName}"
-<h3>@StoreName</h3>
+﻿@page "/stores/{StoreId:int}"
+@using BlazorApp2.Models
+@using BlazorApp2.Data
+@inject Labb1DbContext Context;
+@inject IJSRuntime JS;
+
+
+<div id="transition-wrapper" style=" opacity: 0;
+                transition: opacity 0.5s ease-in-out;">
+    <h3>@_store?.StoreName</h3>
+
+    <h4>Inventory</h4>
+    @if (_inventory != null)
+    {
+        <ol>
+            @foreach (var inventoryRow in _inventory)
+            {   
+                <li style="display:flex;flex-direction: row; justify-content: space-between">
+                    <div>@inventoryRow.Isbn</div>
+                    <div>@inventoryRow.Quantity</div>
+                </li>
+            }
+        </ol>
+    
+    }
+</div>
+
 
 @code {
-    [Parameter] public string StoreName { get; set; }
+    [Parameter] public int StoreId { get; set; }
+    private IEnumerable<Inventory>? _inventory;
+    private Models.Store? _store;
+    
+    protected override void OnInitialized()
+    {
+        _store = Context.Stores.ToList().FirstOrDefault(store => store.StoreId == StoreId);
+        _inventory = Context.Inventories.ToList().Where(inventory => inventory.StoreId == StoreId);
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        {
+            if (firstRender)
+            {
+                await JS.InvokeVoidAsync("startTransition");
+            }
+            
+        }
+    }
+    
 }
