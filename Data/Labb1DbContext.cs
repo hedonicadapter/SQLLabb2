@@ -80,9 +80,20 @@ public partial class Labb1DbContext : DbContext
     }
 
 
-protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=tcp:sqllabb2-server.database.windows.net,1433;Initial Catalog=sqllabb2-database;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\";");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        // Use configuration to read the connection string
+        IConfigurationRoot configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json")  // Adjust this based on your configuration file
+            .Build();
+
+        // Read the connection string from configuration
+        string connectionString = configuration["SQLAZURECONNSTR_AZURE_SQL_CONNECTIONSTRING"];
+
+        // Use the connection string in optionsBuilder
+        optionsBuilder.UseSqlServer(connectionString);
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
