@@ -82,17 +82,7 @@ public partial class Labb1DbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        // Use configuration to read the connection string
-        IConfigurationRoot configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")  // Adjust this based on your configuration file
-            .Build();
-
-        // Read the connection string from configuration
-        string connectionString = configuration["DB_CONNECTION_STRING"];
-
-        // Use the connection string in optionsBuilder
-        optionsBuilder.UseSqlServer(connectionString);
+        optionsBuilder.UseSqlServer(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"));
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

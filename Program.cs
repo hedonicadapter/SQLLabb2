@@ -2,10 +2,8 @@ using BlazorApp2.Data;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
-var configuration = builder.Configuration;
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -13,7 +11,7 @@ builder.Services.AddServerSideBlazor();
 
 builder.Services.AddDbContext<Labb1DbContext>(options =>
 {
-    options.UseSqlServer(configuration["DB_CONNECTION_STRING"]);
+    options.UseSqlServer(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"));
 });
 
 var app = builder.Build();
