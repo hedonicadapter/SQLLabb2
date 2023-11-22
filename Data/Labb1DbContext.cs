@@ -89,7 +89,7 @@ public partial class Labb1DbContext : DbContext
             .Build();
 
         // Read the connection string from configuration
-        string connectionString = configuration["SQLAZURECONNSTR_AZURE_SQL_CONNECTIONSTRING"];
+        string connectionString = configuration["DB_CONNECTION_STRING"];
 
         // Use the connection string in optionsBuilder
         optionsBuilder.UseSqlServer(connectionString);

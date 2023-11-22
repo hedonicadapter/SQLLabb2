@@ -13,7 +13,7 @@ builder.Services.AddServerSideBlazor();
 
 builder.Services.AddDbContext<Labb1DbContext>(options =>
 {
-    options.UseSqlServer(configuration["SQLAZURECONNSTR_AZURE_SQL_CONNECTIONSTRING "]);
+    options.UseSqlServer(configuration["DB_CONNECTION_STRING"]);
 });
 
 var app = builder.Build();
