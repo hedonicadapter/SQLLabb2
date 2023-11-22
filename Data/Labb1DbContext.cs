@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
+using System.Runtime.CompilerServices;
 using BlazorApp2.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace BlazorApp2.Data;
 
@@ -40,9 +43,46 @@ public partial class Labb1DbContext : DbContext
 
     public virtual DbSet<StoresEmployee> StoresEmployees { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+
+    
+    public async Task<List<dynamic>>? GetStores(params string[] fields)
+    {
+        var keys = GetForeignKeys(this, Stores);
+        var queryResult = Stores;
+        string joinCondition = "";
+        
+        foreach (IForeignKey key in keys)
+        {
+            string? foreignTableName = key.PrincipalEntityType.GetTableName();
+
+            joinCondition += $"JOIN [{foreignTableName}] ON Stores.[{key.Properties.FirstOrDefault()?.Name}] = [{foreignTableName}].[{key.PrincipalKey.Properties[0].Name}] ";
+
+        }
+        var result = this.Stores.FromSqlRaw($"SELECT * FROM Stores {joinCondition}");
+        
+        return null;
+        // var query = await
+        //     (Stores.Join(this.Inventories,
+        //         store => store,
+        //         inventory => inventory.Store,
+        //         (store, inventory) =>
+        //             new ExpandoObject() { Store = store.StoreName, ISBN = inventory.Isbn, Quantity = inventory.Quantity }))
+        //     .ToListAsync();
+        //
+        // return  query;
+    }
+
+    public static List<IForeignKey>? GetForeignKeys<T>(Labb1DbContext dbContext, DbSet<T> table) where T : class
+    {
+        var tableType = table.GetType().GetGenericArguments().First();
+
+        return dbContext.Model.FindEntityType(tableType)?.GetForeignKeys().ToList();
+    }
+
+
+protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=DESKTOP-0ESCU8J;Database=Labb1;Integrated Security=SSPI;TrustServerCertificate=True");
+        => optionsBuilder.UseSqlServer("Server=tcp:sqllabb2-server.database.windows.net,1433;Initial Catalog=sqllabb2-database;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\";");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

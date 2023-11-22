@@ -11,6 +11,8 @@
     protected override async Task OnInitializedAsync()
     {
         Stores = await Context.Stores.ToListAsync();
+
+        Context.GetStores();
     }
 }
 
@@ -20,7 +22,14 @@
     foreach (Models.Store store in Stores)
     {
         <div>
-            <a href="stores/@store.StoreId">@store.StoreName</a>
+            <div class="card" style="width: 18rem;">
+              <div class="card-body">
+                <h5 class="card-title">@store.StoreName</h5>
+                <h6 class="card-subtitle mb-2 text-muted">@store.Address</h6>
+                <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                <a href="stores/@store.StoreId" class="card-link">Card link</a>
+              </div>
+            </div>
         </div>
     }
 }

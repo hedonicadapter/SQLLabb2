@@ -11,12 +11,12 @@
     <h4>Inventory</h4>
     @if (_inventory != null)
     {
-        <ol>
+        <ol style="all:unset;">
             @foreach (var inventoryRow in _inventory)
             {   
-                <li style="display:flex;flex-direction: row; justify-content: space-between">
-                    <div>@inventoryRow.Isbn</div>
-                    <div>@inventoryRow.Quantity</div>
+                <li class="d-flex flex-row justify-content-between">
+                    <div >@inventoryRow.Isbn</div>
+                    <div >@inventoryRow.Quantity</div>
                 </li>
             }
         </ol>
