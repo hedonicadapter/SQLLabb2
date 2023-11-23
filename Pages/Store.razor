@@ -1,14 +1,93 @@
 ﻿@page "/stores/{StoreId:int}"
 @using BlazorApp2.Models
 @using BlazorApp2.Data
+@using BlazorStrap
+@using System.ComponentModel.DataAnnotations
+@using System.Globalization
+@using Position = BlazorStrap.Position
 @inject Labb1DbContext Context;
 
 
 
 <TransitionWrapper>
     <h3>@_store?.StoreName</h3>
+    
+    <header class="d-flex flex-row justify-content-between">
+        <h4>Inventory</h4>
+        <BSButton Color="BSColor.Primary" Target="addBookModal">Add book</BSButton>
+    </header>
+    
+    <BSModal IsCentered="true" DataId="addBookModal">
+        <Header>Add book</Header>
+        <Content>
+            <BSForm Model="Modal" IsRow="true" Gutters="Gutters.Medium" OnSubmit="OnSubmit" OnReset="OnReset">
+            
+                <DataAnnotationsValidator />
+                <BSCol Position="Position.Relative" ColumnMedium="12">
+                    @_message
+                    <BSValidationSummary />
+                </BSCol>
+                
+                <BSCol Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Isbn</BSLabel>
+                    <BSInput InputType="InputType.Text" @bind-Value="Modal.Isbn13" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => Modal.Isbn13)" ValidMessage="Isbn looks good." />
+                </BSCol>
+                <BSCol Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Title</BSLabel>
+                    <BSInput InputType="InputType.Text" @bind-Value="Modal.Title" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => Modal.Title)" ValidMessage="Title looks good." />
+                </BSCol>
+                <BSCol Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Language iso code</BSLabel>
+                    <BSInput InputType="InputType.Text" @bind-Value="Modal.LanguageIso" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => Modal.LanguageIso)" ValidMessage="LanguageIso looks good." />
+                </BSCol>
+                <BSCol Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Price</BSLabel>
+                    <BSInput InputType="InputType.Text" @bind-Value="Modal.Price" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => Modal.Price)" ValidMessage="Price looks good." />
+                </BSCol>
+                <BSCol Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Published date</BSLabel>
+                    <BSInput InputType="InputType.Text" @bind-Value="Modal.Published" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => Modal.Published)" ValidMessage="Looks good." />
+                </BSCol>
+                <BSCol Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Description</BSLabel>
+                    <BSInput InputType="InputType.Text" @bind-Value="Modal.Description" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => Modal.Description)" ValidMessage="Description looks good." />
+                </BSCol>
+            
+                <BSCol Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Author's name</BSLabel>
+                    <BSInput InputType="InputType.Text" @bind-Value="Modal.AuthorFirstname" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => Modal.AuthorFirstname)" ValidMessage="Description looks good." />
+                </BSCol>
+                <BSCol Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Author's last name</BSLabel>
+                    <BSInput InputType="InputType.Text" @bind-Value="Modal.AuthorLastname" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => Modal.AuthorLastname)" ValidMessage="Description looks good." />
+                </BSCol>
+                <BSCol Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Author's birthday</BSLabel>
+                    <BSInput InputType="InputType.Text" @bind-Value="Modal.AuthorBirthday" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => Modal.AuthorBirthday)" ValidMessage="Description looks good." />
+                </BSCol>
+                
+                <BSCol Column="12">
+                    <BSButton Color="BSColor.Primary" IsSubmit="true">Submit</BSButton>
+                    <BSButton Color="BSColor.Primary" IsReset="true">Reset</BSButton>
+                </BSCol>
+            </BSForm>
+        </Content>
+        <Footer Context="modal">
+            <BSButton MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="modal.HideAsync">Close</BSButton>
+            <BSButton Color="BSColor.Primary">Understood</BSButton>
+        </Footer>
+    </BSModal>
 
-    <h4>Inventory</h4>
+    
     @if (_inventory != null)
     {
         <ol style="all:unset;">
@@ -36,6 +115,72 @@
 
     }
 
+
+    private AddBookForm Modal { get; set; } = new AddBookForm();
+    private string _message = "";
+
+    private void OnReset(IBSForm bSForm)
+    {
+        bSForm.Reset();
+    }
+    private void OnSubmit(EditContext e)
+    {
+        if (e.Validate()) _message = "Added!";
+        
+    }
     
+    public class AddBookForm
+    {
+        [Required(ErrorMessage = "Provide an Isbn13 or else")]
+        [RegularExpression(@"^\d{3}-\d{1,5}-\d{2,7}-\d{1,7}-\d{1,6}-\d$")] // Chat-GPT
+        public string? Isbn13 {get;set;}
+        
+        [Required(ErrorMessage = "Provide a title or else")]
+        public string? Title {get;set;}
+        
+        [IsIso]
+        [Required(ErrorMessage = "Provide a language iso code or else")]
+        public string? LanguageIso {get;set;}
+        
+        [Required(ErrorMessage = "Provide a price or else")]
+        public double? Price {get;set;}
+        
+        [Required(ErrorMessage = "Provide a date of publication or else")]
+        public DateTime? Published {get;set;}
+        
+        [Required(ErrorMessage = "Provide a description or else")]
+        public string? Description {get;set;}
+        
+        [Required(ErrorMessage = "Provide the author's name or else")]
+        public string? AuthorFirstname {get;set;}
+        
+        [Required(ErrorMessage = "Provide the author's last name or else")]
+        public string? AuthorLastname {get;set;}
+        
+        [Required(ErrorMessage = "Provide the author's birthday or else")]
+        public DateTime? AuthorBirthday {get;set;}
+
+    }
     
+    sealed class IsIso : ValidationAttribute
+    {
+        // https://stackoverflow.com/a/48359145
+        public override bool IsValid(object value)
+        {
+            string code = value as string;
+            if (string.IsNullOrEmpty(code)) return true;
+
+            CultureInfo[] cultures = CultureInfo.GetCultures(CultureTypes.SpecificCultures);
+
+            foreach (var culture in cultures)
+            {
+                if (culture.Name.Equals(code, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
 }
