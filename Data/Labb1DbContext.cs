@@ -56,45 +56,71 @@ public partial class Labb1DbContext : DbContext
         
         return author.AuthorId;
     }
-    public async Task<string> UpsertBook(Book book)
+    public async Task<string> UpsertBook(Book book, int quantity, Store store)
     {
+        await UpsertInventory(book.Isbn13, quantity, store);
+        
         var exists = await Books.FirstOrDefaultAsync(entry =>
             entry.Isbn13 == book.Isbn13); 
 
         if (exists != null) return exists.Isbn13;
 
-        Books.Add(book);
+        await Books.AddAsync(book);
+        
         await SaveChangesAsync();
         
         return book.Isbn13; // behövs inte men det blir consistent med den andra upsert
     }
-    
-    public async Task<List<dynamic>>? GetStores(params string[] fields)
+
+    private async Task UpsertInventory(string isbn13, int quantity, Store store)
     {
-        var keys = GetForeignKeys(this, Stores);
-        var queryResult = Stores;
-        string joinCondition = "";
-        
-        foreach (IForeignKey key in keys)
+        var existingInventory = await Inventories.FirstOrDefaultAsync(inv => inv.Isbn == isbn13 && inv.StoreId == store.StoreId);
+
+        if (existingInventory != null) existingInventory.Quantity = quantity;
+        else
         {
-            string? foreignTableName = key.PrincipalEntityType.GetTableName();
-
-            joinCondition += $"JOIN [{foreignTableName}] ON Stores.[{key.Properties.FirstOrDefault()?.Name}] = [{foreignTableName}].[{key.PrincipalKey.Properties[0].Name}] ";
-
+            await Inventories.AddAsync(new Inventory(){Isbn = isbn13, Quantity = quantity, Store = store, StoreId = store.StoreId});
         }
-        var result = this.Stores.FromSqlRaw($"SELECT * FROM Stores {joinCondition}");
-        
-        return null;
-        // var query = await
-        //     (Stores.Join(this.Inventories,
-        //         store => store,
-        //         inventory => inventory.Store,
-        //         (store, inventory) =>
-        //             new ExpandoObject() { Store = store.StoreName, ISBN = inventory.Isbn, Quantity = inventory.Quantity }))
-        //     .ToListAsync();
-        //
-        // return  query;
     }
+    
+    do this
+    public async Task DeleteBook(Book book, int quantity, Store store)
+    {
+        await SetStock(book.Isbn13, quantity, store);
+        
+        var exists = await Books.FirstOrDefaultAsync(entry =>
+            entry.Isbn13 == book.Isbn13); 
+        if (exists == null) return;
+
+        Books.Remove(exists);
+        
+        await SaveChangesAsync();
+    }
+
+    private async Task SetStock(string isbn13, int quantity, Store store)
+    {
+        var existingInventory = await Inventories.FirstOrDefaultAsync(inv => inv.Isbn == isbn13 && inv.StoreId == store.StoreId);
+
+        if (existingInventory != null) existingInventory.Quantity = quantity;
+    }
+    
+    // public async Task<List<dynamic>>? GetStores(params string[] fields)
+    // {
+    //     var keys = GetForeignKeys(this, Stores);
+    //     var queryResult = Stores;
+    //     string joinCondition = "";
+    //     
+    //     foreach (IForeignKey key in keys)
+    //     {
+    //         string? foreignTableName = key.PrincipalEntityType.GetTableName();
+    //
+    //         joinCondition += $"JOIN [{foreignTableName}] ON Stores.[{key.Properties.FirstOrDefault()?.Name}] = [{foreignTableName}].[{key.PrincipalKey.Properties[0].Name}] ";
+    //
+    //     }
+    //     var result = this.Stores.FromSqlRaw($"SELECT * FROM Stores {joinCondition}");
+    //     
+    //     return null;
+    // }
 
     public static List<IForeignKey>? GetForeignKeys<T>(Labb1DbContext dbContext, DbSet<T> table) where T : class
     {

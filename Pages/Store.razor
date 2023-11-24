@@ -24,57 +24,61 @@
             <BSForm Model="NewBook" IsRow="true" Gutters="Gutters.Medium" OnSubmit="OnSubmit" OnReset="OnReset">
             
                 <DataAnnotationsValidator />
-                <BSCol Position="Position.Relative" ColumnMedium="12">
+                <BsRow Position="Position.Relative" ColumnMedium="12">
                     @_message
                     <BSValidationSummary />
-                </BSCol>
+                </BsRow>
                 
-                <BSCol Position="Position.Relative" ColumnMedium="4">
+                <BsRow Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Isbn</BSLabel>
                     <BSInput InputType="InputType.Text" @bind-Value="NewBook.Isbn13" ValidateOnInput="true" OnBlur="@UpdateForm"/>
                     <BSFeedback For="@(() => NewBook.Isbn13)" ValidMessage="Isbn looks good."/>
-                </BSCol>
-                <BSCol Position="Position.Relative" ColumnMedium="4">
+                </BsRow>
+                <BsRow Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Title</BSLabel>
                     <BSInput InputType="InputType.Text" @bind-Value="NewBook.Title" ValidateOnInput="true" />
                     <BSFeedback For="@(() => NewBook.Title)" ValidMessage="Title looks good." />
-                </BSCol>
-                <BSCol Position="Position.Relative" ColumnMedium="4">
+                </BsRow>
+                <BsRow Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Language iso code</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.LanguageIso" ValidateOnInput="true" />
+                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.LanguageIso" ValidateOnInput="true" placeholder="eg. 'en-us'"/>
                     <BSFeedback For="@(() => NewBook.LanguageIso)" ValidMessage="LanguageIso looks good." />
-                </BSCol>
-                <BSCol Position="Position.Relative" ColumnMedium="4">
+                </BsRow>
+                <BsRow Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Price</BSLabel>
                     <BSInput InputType="InputType.Text" @bind-Value="NewBook.Price" ValidateOnInput="true" />
                     <BSFeedback For="@(() => NewBook.Price)" ValidMessage="Price looks good." />
-                </BSCol>
-                <BSCol Position="Position.Relative" ColumnMedium="4">
+                </BsRow>
+                <BsRow Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Published date</BSLabel>
                     <BSInput InputType="InputType.Date" @bind-Value="NewBook.Published" ValidateOnInput="true" />
                     <BSFeedback For="@(() => NewBook.Published)" ValidMessage="Looks good." />
-                </BSCol>
-                <BSCol Position="Position.Relative" ColumnMedium="4">
+                </BsRow>
+                <BsRow Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Description</BSLabel>
                     <BSInput InputType="InputType.Text" @bind-Value="NewBook.Description" ValidateOnInput="true" />
                     <BSFeedback For="@(() => NewBook.Description)" ValidMessage="Description looks good." />
-                </BSCol>
+                </BsRow>
+                <BsRow Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Quantity in stock</BSLabel>
+                    <BSInput InputType="InputType.Number" @bind-Value="NewBook.Quantity" />
+                </BsRow>
             
-                <BSCol Position="Position.Relative" ColumnMedium="4">
+                <BSRow Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Author's name</BSLabel>
                     <BSInput InputType="InputType.Text" @bind-Value="NewBook.AuthorFirstname" ValidateOnInput="true" />
                     <BSFeedback For="@(() => NewBook.AuthorFirstname)" ValidMessage="Description looks good." />
-                </BSCol>
-                <BSCol Position="Position.Relative" ColumnMedium="4">
+                </BSRow>
+                <BSRow Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Author's last name</BSLabel>
                     <BSInput InputType="InputType.Text" @bind-Value="NewBook.AuthorLastname" ValidateOnInput="true" />
                     <BSFeedback For="@(() => NewBook.AuthorLastname)" ValidMessage="Description looks good." />
-                </BSCol>
-                <BSCol Position="Position.Relative" ColumnMedium="4">
+                </BSRow>
+                <BSRow Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Author's birthday</BSLabel>
                     <BSInput InputType="InputType.Date" @bind-Value="NewBook.AuthorBirthday" ValidateOnInput="true" />
                     <BSFeedback For="@(() => NewBook.AuthorBirthday)" ValidMessage="Description looks good." />
-                </BSCol>
+                </BSRow>
                 
                 <div style="margin-right: 0; margin-left: auto; width: fit-content">
                     <BSCol Column="12">
@@ -154,7 +158,7 @@
                 NewBook.Description 
             );
             
-            await Context.UpsertBook(book);
+            await Context.UpsertBook(book, NewBook.Quantity, _store);
         }
     }
 
@@ -241,16 +245,17 @@
         public string? Description {get;set;}
         
         [Required(ErrorMessage = "Provide the author's name or else")]
+        [MaxLength(40)]
         public string? AuthorFirstname {get;set;}
         
         [Required(ErrorMessage = "Provide the author's last name or else")]
+        [MaxLength(40)]
         public string? AuthorLastname {get;set;}
         
         [Required(ErrorMessage = "Provide the author's birthday or else")]
         public DateTime? AuthorBirthday {get;set;}
-        
-        
 
+        public int Quantity { get; set; } = 0;
     }
     
     sealed class IsIso : ValidationAttribute

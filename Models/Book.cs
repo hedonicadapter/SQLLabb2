@@ -36,7 +36,7 @@ public partial class Book
     public string Title { get; set; }
 
     [Column("LanguageISO")]
-    [StringLength(3)]
+    [StringLength(5)]
     [Unicode(false)]
     public string LanguageIso { get; set; }
 
