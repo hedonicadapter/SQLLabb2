@@ -4,6 +4,7 @@
 @using BlazorStrap
 @using System.ComponentModel.DataAnnotations
 @using System.Globalization
+@using Newtonsoft.Json.Linq
 @using Position = BlazorStrap.Position
 @inject Labb1DbContext Context;
 
@@ -17,10 +18,10 @@
         <BSButton Color="BSColor.Primary" Target="addBookModal">Add book</BSButton>
     </header>
     
-    <BSModal IsCentered="true" DataId="addBookModal">
+    <BSModal HideOnValidSubmit="true" IsCentered="true" DataId="addBookModal">
         <Header>Add book</Header>
         <Content>
-            <BSForm Model="Modal" IsRow="true" Gutters="Gutters.Medium" OnSubmit="OnSubmit" OnReset="OnReset">
+            <BSForm Model="NewBook" IsRow="true" Gutters="Gutters.Medium" OnSubmit="OnSubmit" OnReset="OnReset">
             
                 <DataAnnotationsValidator />
                 <BSCol Position="Position.Relative" ColumnMedium="12">
@@ -30,60 +31,63 @@
                 
                 <BSCol Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Isbn</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="Modal.Isbn13" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => Modal.Isbn13)" ValidMessage="Isbn looks good." />
+                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.Isbn13" ValidateOnInput="true" OnBlur="@UpdateForm"/>
+                    <BSFeedback For="@(() => NewBook.Isbn13)" ValidMessage="Isbn looks good."/>
                 </BSCol>
                 <BSCol Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Title</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="Modal.Title" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => Modal.Title)" ValidMessage="Title looks good." />
+                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.Title" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => NewBook.Title)" ValidMessage="Title looks good." />
                 </BSCol>
                 <BSCol Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Language iso code</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="Modal.LanguageIso" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => Modal.LanguageIso)" ValidMessage="LanguageIso looks good." />
+                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.LanguageIso" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => NewBook.LanguageIso)" ValidMessage="LanguageIso looks good." />
                 </BSCol>
                 <BSCol Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Price</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="Modal.Price" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => Modal.Price)" ValidMessage="Price looks good." />
+                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.Price" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => NewBook.Price)" ValidMessage="Price looks good." />
                 </BSCol>
                 <BSCol Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Published date</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="Modal.Published" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => Modal.Published)" ValidMessage="Looks good." />
+                    <BSInput InputType="InputType.Date" @bind-Value="NewBook.Published" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => NewBook.Published)" ValidMessage="Looks good." />
                 </BSCol>
                 <BSCol Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Description</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="Modal.Description" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => Modal.Description)" ValidMessage="Description looks good." />
+                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.Description" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => NewBook.Description)" ValidMessage="Description looks good." />
                 </BSCol>
             
                 <BSCol Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Author's name</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="Modal.AuthorFirstname" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => Modal.AuthorFirstname)" ValidMessage="Description looks good." />
+                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.AuthorFirstname" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => NewBook.AuthorFirstname)" ValidMessage="Description looks good." />
                 </BSCol>
                 <BSCol Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Author's last name</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="Modal.AuthorLastname" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => Modal.AuthorLastname)" ValidMessage="Description looks good." />
+                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.AuthorLastname" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => NewBook.AuthorLastname)" ValidMessage="Description looks good." />
                 </BSCol>
                 <BSCol Position="Position.Relative" ColumnMedium="4">
                     <BSLabel>Author's birthday</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="Modal.AuthorBirthday" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => Modal.AuthorBirthday)" ValidMessage="Description looks good." />
+                    <BSInput InputType="InputType.Date" @bind-Value="NewBook.AuthorBirthday" ValidateOnInput="true" />
+                    <BSFeedback For="@(() => NewBook.AuthorBirthday)" ValidMessage="Description looks good." />
                 </BSCol>
                 
-                <BSCol Column="12">
-                    <BSButton Color="BSColor.Primary" IsSubmit="true">Submit</BSButton>
-                    <BSButton Color="BSColor.Primary" IsReset="true">Reset</BSButton>
-                </BSCol>
+                <div style="margin-right: 0; margin-left: auto; width: fit-content">
+                    <BSCol Column="12">
+                        <BSButton Color="BSColor.Primary" IsSubmit="true">Submit</BSButton>
+                        <BSButton Color="BSColor.Primary" IsReset="true">Reset</BSButton>
+                    </BSCol>
+                </div>
             </BSForm>
         </Content>
         <Footer Context="modal">
-            <BSButton MarginStart="Margins.Auto" Color="BSColor.Secondary" @onclick="modal.HideAsync">Close</BSButton>
-            <BSButton Color="BSColor.Primary">Understood</BSButton>
+            <div style="margin-left:0; margin-right: auto;">
+                <BSButton Color="BSColor.Secondary" @onclick="modal.HideAsync">Cancel</BSButton>
+            </div>
         </Footer>
     </BSModal>
 
@@ -107,16 +111,17 @@
     [Parameter] public int StoreId { get; set; }
     private IEnumerable<Inventory>? _inventory;
     private Models.Store? _store;
+    public string[] dateFormats = { "yyyy", "MM", "dd", "yyyyMM", "yyyyMMdd", "MMddyyyy", "yyyy-MM-dd" /* Add more formats as needed */ };
     
     protected override void OnInitialized()
     {
         _store = Context.Stores.ToList().FirstOrDefault(store => store.StoreId == StoreId);
         _inventory = Context.Inventories.ToList().Where(inventory => inventory.StoreId == StoreId);
-
+        
+        base.OnInitialized();
     }
 
-
-    private AddBookForm Modal { get; set; } = new AddBookForm();
+    private AddBookForm NewBook { get; set; } = new AddBookForm();
     private string _message = "";
 
     private void OnReset(IBSForm bSForm)
@@ -125,16 +130,100 @@
     }
     private void OnSubmit(EditContext e)
     {
-        if (e.Validate()) _message = "Added!";
+        if (e.Validate()) CreateBook();
+    }
+
+    private async void CreateBook()
+    {
+        // Book already exists
+        if (Context.Books.FirstOrDefault(book => book.Isbn13 == NewBook.Isbn13) != null)
+        {
+            _message = "Book with this ISBN already exists (≧﹏ ≦)";
+        }
+        else
+        {
+            Author author = new Author { Firstname =NewBook.AuthorFirstname!, Lastname = NewBook.AuthorLastname!, Birthday = NewBook.AuthorBirthday };
+            var authorId = await Context.UpsertAuthor(author);
+
+            Book book = new Book(NewBook.Isbn13!,
+                NewBook.Title!,
+                NewBook.LanguageIso!,
+                (decimal)NewBook.Price!,
+                NewBook.Published,
+                authorId,
+                NewBook.Description 
+            );
+            
+            await Context.UpsertBook(book);
+        }
+    }
+
+    private async Task UpdateForm()
+    {
+        await GetBookInfo();
         
+        StateHasChanged();
+    }
+   
+    private async Task GetBookInfo(){
+        // invalid isbn
+        if (!string.IsNullOrEmpty(_message)) return;
+        if (string.IsNullOrEmpty(NewBook.Isbn13)) return;
+        
+        JObject? bok = await DAO.GetBookByISBN(NewBook.Isbn13);
+        if (bok == null) return;
+
+        if (string.IsNullOrEmpty(NewBook.Title)) NewBook.Title = bok["title"]?.ToString();
+        if (string.IsNullOrEmpty(NewBook.Description)) NewBook.Description = bok["subtitle"]?.ToString();
+
+        
+        if (NewBook.Published == null)
+        {
+            var convertedDate = ConvertDate(bok["publish_date"]?.ToString());
+            NewBook.Published = convertedDate;
+        }
+        
+        JObject? author = await DAO.GetAuthors(bok["authors"]?[0]?.ToString());
+        if (author == null) return;
+
+        var names = author["name"]?.ToString().Split(" ");
+        if (string.IsNullOrEmpty(NewBook.AuthorFirstname)) NewBook.AuthorFirstname = names?[0];
+        if (string.IsNullOrEmpty(NewBook.AuthorLastname)) NewBook.AuthorLastname = names?[^1];
+                    
+        if (NewBook.AuthorBirthday == null)
+        {
+            var convertedDate = ConvertDate(author["birth_date"]?.ToString());
+            NewBook.AuthorBirthday = convertedDate;
+        }
+    }
+
+    public DateTime? ConvertDate(string dateString)
+    {
+        if (string.IsNullOrEmpty(dateString)) return null;
+        
+        if (DateTime.TryParseExact(dateString, dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
+        {
+            return result;
+        }
+
+        return null;
     }
     
     public class AddBookForm
     {
-        [Required(ErrorMessage = "Provide an Isbn13 or else")]
-        [RegularExpression(@"^\d{3}-\d{1,5}-\d{2,7}-\d{1,7}-\d{1,6}-\d$")] // Chat-GPT
-        public string? Isbn13 {get;set;}
+        private string? _isbn13;
         
+        [Required(ErrorMessage = "Provide an Isbn13 or else")]
+        // RegEx from https://www.oreilly.com/library/view/regular-expressions-cookbook/9781449327453/ch04s13.html
+        [RegularExpression(@"^(?:ISBN(?:-13)?:?\ )?(?=[0-9]{13}$|(?=(?:[0-9]+[-\ ]){4})[-\ 0-9]{17}$)97[89][-\ ]?[0-9]{1,5}[-\ ]?[0-9]+[-\ ]?[0-9]+[-\ ]?[0-9]$", ErrorMessage = "Must comply to ISBN-13 formatting ヽ（≧□≦）ノ")] // Chat-GPT
+        public string? Isbn13
+        {
+            get => _isbn13;
+            set
+            {
+                _isbn13 = value;
+        }}
+
         [Required(ErrorMessage = "Provide a title or else")]
         public string? Title {get;set;}
         
@@ -159,6 +248,8 @@
         
         [Required(ErrorMessage = "Provide the author's birthday or else")]
         public DateTime? AuthorBirthday {get;set;}
+        
+        
 
     }
     

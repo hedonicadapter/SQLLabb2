@@ -8,6 +8,23 @@ namespace BlazorApp2.Models;
 
 public partial class Book
 {
+    public Book()
+    {
+        
+    }
+
+    public Book(string isbn, string title, string isoCode, decimal price, DateTime? published, int author,
+        string? desc = "")
+    {
+        Isbn13 = isbn;
+        Title = title;
+        LanguageIso = isoCode;
+        Price = price;
+        Published = published;
+        Author = author;
+        Description = desc!;
+    }
+    
     [Key]
     [Column("ISBN13")]
     [StringLength(17)]

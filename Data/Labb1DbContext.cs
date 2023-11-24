@@ -43,7 +43,31 @@ public partial class Labb1DbContext : DbContext
 
     public virtual DbSet<StoresEmployee> StoresEmployees { get; set; }
 
+    public async Task<int> UpsertAuthor(Author author)
+    {
+        var exists = await Authors.FirstOrDefaultAsync(entry =>
+            entry.Birthday == author.Birthday && entry.Lastname == author.Lastname &&
+            entry.Firstname == author.Firstname); // ska det vara composite key kanske
 
+        if (exists != null) return exists.AuthorId;
+
+        Authors.Add(author);
+        await SaveChangesAsync();
+        
+        return author.AuthorId;
+    }
+    public async Task<string> UpsertBook(Book book)
+    {
+        var exists = await Books.FirstOrDefaultAsync(entry =>
+            entry.Isbn13 == book.Isbn13); 
+
+        if (exists != null) return exists.Isbn13;
+
+        Books.Add(book);
+        await SaveChangesAsync();
+        
+        return book.Isbn13; // behövs inte men det blir consistent med den andra upsert
+    }
     
     public async Task<List<dynamic>>? GetStores(params string[] fields)
     {
