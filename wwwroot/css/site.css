@@ -66,3 +66,15 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+    .card-button{
+        all:unset !important;
+    }
+    .card-button:hover{
+        cursor:pointer !important;
+        outline: 1px solid var(--bs-primary) !important;
+        border-radius:.25rem !important;
+    }
+    .card-button:hover h5, .card-button:hover p{
+        color:var(--bs-primary);
+    }

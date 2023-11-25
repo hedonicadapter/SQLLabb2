@@ -79,14 +79,13 @@ public partial class Labb1DbContext : DbContext
         if (existingInventory != null) existingInventory.Quantity = quantity;
         else
         {
-            await Inventories.AddAsync(new Inventory(){Isbn = isbn13, Quantity = quantity, Store = store, StoreId = store.StoreId});
+            await Inventories.AddAsync(new Inventory{Isbn = isbn13, Quantity = quantity, Store = store, StoreId = store.StoreId});
         }
     }
     
-    do this
-    public async Task DeleteBook(Book book, int quantity, Store store)
+    public async Task DeleteBook(Book book, Store store)
     {
-        await SetStock(book.Isbn13, quantity, store);
+        await SetStock(book.Isbn13, 0, store);
         
         var exists = await Books.FirstOrDefaultAsync(entry =>
             entry.Isbn13 == book.Isbn13); 
@@ -132,6 +131,7 @@ public partial class Labb1DbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        optionsBuilder.EnableDetailedErrors();
         optionsBuilder.UseSqlServer(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"));
     }
 

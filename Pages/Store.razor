@@ -4,90 +4,134 @@
 @using BlazorStrap
 @using System.ComponentModel.DataAnnotations
 @using System.Globalization
+@using Microsoft.EntityFrameworkCore
 @using Newtonsoft.Json.Linq
 @using Position = BlazorStrap.Position
 @inject Labb1DbContext Context;
+@inject IJSRuntime JS
 
 
 
 <TransitionWrapper>
-    <h3>@_store?.StoreName</h3>
-    
-    <header class="d-flex flex-row justify-content-between">
+    <header class="pb-5">
+        <h2>@_store?.StoreName</h2>
+    </header>
+
+    <div class="d-flex flex-row justify-content-between align-content-center pb-3">
         <h4>Inventory</h4>
         <BSButton Color="BSColor.Primary" Target="addBookModal">Add book</BSButton>
-    </header>
-    
+    </div>
+
     <BSModal HideOnValidSubmit="true" IsCentered="true" DataId="addBookModal">
-        <Header>Add book</Header>
+        <Header>
+            <h2>Add book</h2></Header>
         <Content>
-            <BSForm Model="NewBook" IsRow="true" Gutters="Gutters.Medium" OnSubmit="OnSubmit" OnReset="OnReset">
-            
-                <DataAnnotationsValidator />
-                <BsRow Position="Position.Relative" ColumnMedium="12">
-                    @_message
-                    <BSValidationSummary />
-                </BsRow>
-                
-                <BsRow Position="Position.Relative" ColumnMedium="4">
-                    <BSLabel>Isbn</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.Isbn13" ValidateOnInput="true" OnBlur="@UpdateForm"/>
-                    <BSFeedback For="@(() => NewBook.Isbn13)" ValidMessage="Isbn looks good."/>
-                </BsRow>
-                <BsRow Position="Position.Relative" ColumnMedium="4">
-                    <BSLabel>Title</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.Title" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => NewBook.Title)" ValidMessage="Title looks good." />
-                </BsRow>
-                <BsRow Position="Position.Relative" ColumnMedium="4">
-                    <BSLabel>Language iso code</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.LanguageIso" ValidateOnInput="true" placeholder="eg. 'en-us'"/>
-                    <BSFeedback For="@(() => NewBook.LanguageIso)" ValidMessage="LanguageIso looks good." />
-                </BsRow>
-                <BsRow Position="Position.Relative" ColumnMedium="4">
-                    <BSLabel>Price</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.Price" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => NewBook.Price)" ValidMessage="Price looks good." />
-                </BsRow>
-                <BsRow Position="Position.Relative" ColumnMedium="4">
-                    <BSLabel>Published date</BSLabel>
-                    <BSInput InputType="InputType.Date" @bind-Value="NewBook.Published" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => NewBook.Published)" ValidMessage="Looks good." />
-                </BsRow>
-                <BsRow Position="Position.Relative" ColumnMedium="4">
-                    <BSLabel>Description</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.Description" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => NewBook.Description)" ValidMessage="Description looks good." />
-                </BsRow>
-                <BsRow Position="Position.Relative" ColumnMedium="4">
-                    <BSLabel>Quantity in stock</BSLabel>
-                    <BSInput InputType="InputType.Number" @bind-Value="NewBook.Quantity" />
-                </BsRow>
-            
-                <BSRow Position="Position.Relative" ColumnMedium="4">
-                    <BSLabel>Author's name</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.AuthorFirstname" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => NewBook.AuthorFirstname)" ValidMessage="Description looks good." />
-                </BSRow>
-                <BSRow Position="Position.Relative" ColumnMedium="4">
-                    <BSLabel>Author's last name</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="NewBook.AuthorLastname" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => NewBook.AuthorLastname)" ValidMessage="Description looks good." />
-                </BSRow>
-                <BSRow Position="Position.Relative" ColumnMedium="4">
-                    <BSLabel>Author's birthday</BSLabel>
-                    <BSInput InputType="InputType.Date" @bind-Value="NewBook.AuthorBirthday" ValidateOnInput="true" />
-                    <BSFeedback For="@(() => NewBook.AuthorBirthday)" ValidMessage="Description looks good." />
-                </BSRow>
-                
-                <div style="margin-right: 0; margin-left: auto; width: fit-content">
-                    <BSCol Column="12">
-                        <BSButton Color="BSColor.Primary" IsSubmit="true">Submit</BSButton>
-                        <BSButton Color="BSColor.Primary" IsReset="true">Reset</BSButton>
-                    </BSCol>
-                </div>
-            </BSForm>
+            <section id="new-book-section">
+                <h3>New book</h3>
+                <BSForm Model="NewBook" IsRow="true" Gutters="Gutters.Medium" OnSubmit="@OnSubmit" OnReset="@OnReset">
+
+                    <DataAnnotationsValidator/>
+                    <BsRow Position="Position.Relative" ColumnMedium="12">
+                        @_message
+                        <BSValidationSummary/>
+                    </BsRow>
+
+                    <BsRow Position="Position.Relative" ColumnMedium="4">
+                        <BSLabel>Isbn</BSLabel>
+                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.Isbn13" ValidateOnInput="true" OnBlur="@UpdateForm"/>
+                        <BSFeedback For="@(() => NewBook.Isbn13)" ValidMessage="Isbn looks good."/>
+                    </BsRow>
+                    <BsRow Position="Position.Relative" ColumnMedium="4">
+                        <BSLabel>Title</BSLabel>
+                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.Title" ValidateOnInput="true"/>
+                        <BSFeedback For="@(() => NewBook.Title)" ValidMessage="Title looks good."/>
+                    </BsRow>
+                    <BsRow Position="Position.Relative" ColumnMedium="4">
+                        <BSLabel>Language iso code</BSLabel>
+                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.LanguageIso" ValidateOnInput="true" placeholder="eg. 'en-us'"/>
+                        <BSFeedback For="@(() => NewBook.LanguageIso)" ValidMessage="LanguageIso looks good."/>
+                    </BsRow>
+                    <BsRow Position="Position.Relative" ColumnMedium="4">
+                        <BSLabel>Price</BSLabel>
+                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.Price" ValidateOnInput="true"/>
+                        <BSFeedback For="@(() => NewBook.Price)" ValidMessage="Price looks good."/>
+                    </BsRow>
+                    <BsRow Position="Position.Relative" ColumnMedium="4">
+                        <BSLabel>Published date</BSLabel>
+                        <BSInput InputType="InputType.Date" @bind-Value="NewBook.Published" ValidateOnInput="true"/>
+                        <BSFeedback For="@(() => NewBook.Published)" ValidMessage="Looks good."/>
+                    </BsRow>
+                    <BsRow Position="Position.Relative" ColumnMedium="4">
+                        <BSLabel>Description</BSLabel>
+                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.Description" ValidateOnInput="true"/>
+                        <BSFeedback For="@(() => NewBook.Description)" ValidMessage="Description looks good."/>
+                    </BsRow>
+                    <BsRow Position="Position.Relative" ColumnMedium="4">
+                        <BSLabel>Quantity in stock</BSLabel>
+                        <BSInput InputType="InputType.Number" @bind-Value="NewBook.Quantity"/>
+                    </BsRow>
+
+                    <BSRow Position="Position.Relative" ColumnMedium="4">
+                        <BSLabel>Author's name</BSLabel>
+                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.AuthorFirstname" ValidateOnInput="true"/>
+                        <BSFeedback For="@(() => NewBook.AuthorFirstname)" ValidMessage="Description looks good."/>
+                    </BSRow>
+                    <BSRow Position="Position.Relative" ColumnMedium="4">
+                        <BSLabel>Author's last name</BSLabel>
+                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.AuthorLastname" ValidateOnInput="true"/>
+                        <BSFeedback For="@(() => NewBook.AuthorLastname)" ValidMessage="Description looks good."/>
+                    </BSRow>
+                    <BSRow Position="Position.Relative" ColumnMedium="4">
+                        <BSLabel>Author's birthday</BSLabel>
+                        <BSInput InputType="InputType.Date" @bind-Value="NewBook.AuthorBirthday" ValidateOnInput="true"/>
+                        <BSFeedback For="@(() => NewBook.AuthorBirthday)" ValidMessage="Description looks good."/>
+                    </BSRow>
+
+                    <div style="margin-right: 0; margin-left: auto; width: fit-content">
+                        <BSCol Column="12">
+                            <BSButton Color="BSColor.Primary" IsSubmit="true">Submit</BSButton>
+                            <BSButton Color="BSColor.Primary" IsReset="true">Reset</BSButton>
+                        </BSCol>
+                    </div>
+                </BSForm>
+            </section>
+            <hr/>
+
+            <section>
+                <h3>Edit existing book</h3>
+
+                @if (_books != null && _books.Any())
+                {
+                    <div class="d-flex flex-column gap-3">
+                        @foreach (Book book in _books)
+                        {
+                            var author = @Context.Authors.FirstOrDefault(author => author.AuthorId == book.Author);
+                            var quantity = _inventory?.Where(inv => inv.Isbn == book.Isbn13 && inv.StoreId == _store?.StoreId).Select(s=>s.Quantity).FirstOrDefault();
+                            
+                            <BSButton @onclick="()=>HandleAvailableBookClick(book, author, quantity)" class="m-0 p-0 card-button">
+                                <BSCard CardType="CardType.Card" class="card bg-light m-0 p-0">
+                                    <BSCard CardType="CardType.Body" class="text-start">
+                                        <BSCard CardType="CardType.Title">@book.Title</BSCard>
+                                        <BSCard CardType="CardType.Subtitle">@author?.Firstname @author?.Lastname</BSCard>
+                                        <BSCard CardType="CardType.Text">@book.Description</BSCard>   
+                                    </BSCard>
+                                </BSCard>
+                            </BSButton>
+                            @* <button> *@
+                            @*     <div class="card"> *@
+                            @*         <div class="card-body"> *@
+                            @*             <h5 class="card-title"></h5> *@
+                            @*             <h6 class="card-subtitle mb-2 text-muted"></h6> *@
+                            @*             <p class="card-text"></p> *@
+                            @*         </div> *@
+                            @*     </div> *@
+                            @* </button> *@
+                        }
+                    </div>
+                }
+            </section>
         </Content>
+
         <Footer Context="modal">
             <div style="margin-left:0; margin-right: auto;">
                 <BSButton Color="BSColor.Secondary" @onclick="modal.HideAsync">Cancel</BSButton>
@@ -95,43 +139,66 @@
         </Footer>
     </BSModal>
 
-    
+
     @if (_inventory != null)
     {
-        <ol style="all:unset;">
+        <div class="d-flex flex-column gap-3 w-auto">
             @foreach (var inventoryRow in _inventory)
-            {   
-                <li class="d-flex flex-row justify-content-between">
-                    <div >@inventoryRow.Isbn</div>
-                    <div >@inventoryRow.Quantity</div>
-                </li>
+            {
+                if (_books != null && _books.Any())
+                {
+                    @foreach (Book book in _books.Where(bok => bok.Isbn13 == inventoryRow.Isbn))
+                    {
+                        var author = @Context.Authors.FirstOrDefault(author => author.AuthorId == book.Author);
+
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">@book.Title</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">@author?.Firstname @author?.Lastname</h6>
+                                <p class="card-text">@book.Description</p>
+
+                                <div class="d-flex flex-row justify-content-between">
+                                    <h6 class="card-text">@book.Isbn13</h6>
+                                    <div>@inventoryRow.Quantity in stock</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
             }
-        </ol>
+        </div>
     }
 </TransitionWrapper>
-
+<script>
+  window.scrollToForm = () => {
+    document.querySelector("#new-book-section")?.scrollIntoView({block: "start", inline: "nearest", behavior:"smooth"});
+  };
+</script>
 
 @code {
     [Parameter] public int StoreId { get; set; }
     private IEnumerable<Inventory>? _inventory;
     private Models.Store? _store;
+    private IEnumerable<Book>? _books;
     public string[] dateFormats = { "yyyy", "MM", "dd", "yyyyMM", "yyyyMMdd", "MMddyyyy", "yyyy-MM-dd" /* Add more formats as needed */ };
     
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        _store = Context.Stores.ToList().FirstOrDefault(store => store.StoreId == StoreId);
-        _inventory = Context.Inventories.ToList().Where(inventory => inventory.StoreId == StoreId);
+        _store = await Context.Stores.AsQueryable().FirstOrDefaultAsync(store => store.StoreId == StoreId);
+        _inventory = await Context.Inventories.Where(inventory => inventory.StoreId == StoreId).ToListAsync();
+        _books = await Context.Books.ToListAsync();
         
-        base.OnInitialized();
+        base.OnInitializedAsync();
     }
 
-    private AddBookForm NewBook { get; set; } = new AddBookForm();
+    private AddBookForm NewBook { get; set; } = new();
     private string _message = "";
 
     private void OnReset(IBSForm bSForm)
     {
         bSForm.Reset();
     }
+    
     private void OnSubmit(EditContext e)
     {
         if (e.Validate()) CreateBook();
@@ -140,13 +207,13 @@
     private async void CreateBook()
     {
         // Book already exists
-        if (Context.Books.FirstOrDefault(book => book.Isbn13 == NewBook.Isbn13) != null)
+        if (_books.FirstOrDefault(book => book.Isbn13 == NewBook.Isbn13) != null)
         {
             _message = "Book with this ISBN already exists (≧﹏ ≦)";
         }
         else
         {
-            Author author = new Author { Firstname =NewBook.AuthorFirstname!, Lastname = NewBook.AuthorLastname!, Birthday = NewBook.AuthorBirthday };
+            Author author = new Author { Firstname = NewBook.AuthorFirstname!, Lastname = NewBook.AuthorLastname!, Birthday = NewBook.AuthorBirthday };
             var authorId = await Context.UpsertAuthor(author);
 
             Book book = new Book(NewBook.Isbn13!,
@@ -201,7 +268,7 @@
         }
     }
 
-    public DateTime? ConvertDate(string dateString)
+    private DateTime? ConvertDate(string dateString)
     {
         if (string.IsNullOrEmpty(dateString)) return null;
         
@@ -212,7 +279,28 @@
 
         return null;
     }
-    
+
+    private async Task HandleAvailableBookClick(Book book, Author? author, int? quantity)
+    {
+        NewBook.Isbn13 = book.Isbn13;
+        NewBook.Description = book.Description;
+        NewBook.Title = book.Title;
+        NewBook.Price = (double?)book.Price;
+        NewBook.Published = book.Published;
+        NewBook.LanguageIso = book.LanguageIso;
+        NewBook.Quantity = quantity ?? 0;
+
+        if (author != null)
+        {
+            NewBook.AuthorBirthday = author.Birthday;
+            NewBook.AuthorFirstname = author.Firstname;
+            NewBook.AuthorLastname = author.Lastname;
+        }
+
+        await JS.InvokeVoidAsync("scrollToForm");
+        
+        StateHasChanged();
+    }
     public class AddBookForm
     {
         private string? _isbn13;
