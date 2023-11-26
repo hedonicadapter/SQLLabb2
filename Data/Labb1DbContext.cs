@@ -56,10 +56,8 @@ public partial class Labb1DbContext : DbContext
         
         return author.AuthorId;
     }
-    public async Task<string> UpsertBook(Book book, int quantity, Store store)
+    public async Task<string> UpsertBook(Book book, int quantity, Store? store)
     {
-        await UpsertInventory(book.Isbn13, quantity, store);
-        
         var exists = await Books.FirstOrDefaultAsync(entry =>
             entry.Isbn13 == book.Isbn13);
 
@@ -80,6 +78,9 @@ public partial class Labb1DbContext : DbContext
 
         await Books.AddAsync(book);
         
+        await SaveChangesAsync();
+        
+        if (store != null ) await UpsertInventory(book.Isbn13, quantity, store);
         await SaveChangesAsync();
         
         return book.Isbn13; // behövs inte men det blir consistent med den andra upsert

@@ -2,10 +2,7 @@
 @using BlazorApp2.Models
 @using BlazorApp2.Data
 @using BlazorStrap
-@using System.ComponentModel.DataAnnotations
-@using System.Globalization
 @using Microsoft.EntityFrameworkCore
-@using Newtonsoft.Json.Linq
 @using Position = BlazorStrap.Position
 @inject Labb1DbContext Context;
 @inject IJSRuntime JS
@@ -21,151 +18,32 @@
         <h4>Inventory</h4>
         <BSButton Color="BSColor.Primary" Target="addBookModal">Edit</BSButton>
     </div>
-
-    <BSModal HideOnValidSubmit="true" IsCentered="true" DataId="addBookModal">
-        <Header>
-            <h2>Book metadata</h2>
-        </Header>
-        <Content>
-            <section id="new-book-section">
-                <h3>New book</h3>
-                <BSForm Model="NewBook" IsRow="true" Gutters="Gutters.Medium" OnSubmit="@OnSubmit" OnReset="@OnReset">
-
-                    <DataAnnotationsValidator/>
-                    <BsRow Position="Position.Relative" ColumnMedium="12">
-                        @_message
-                        <BSValidationSummary/>
-                    </BsRow>
-
-                    <BsRow Position="Position.Relative" ColumnMedium="4">
-                        <BSLabel>Isbn</BSLabel>
-                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.Isbn13" ValidateOnInput="true" OnBlur="@UpdateForm"/>
-                        <BSFeedback For="@(() => NewBook.Isbn13)" ValidMessage="Isbn looks good."/>
-                    </BsRow>
-                    <BsRow Position="Position.Relative" ColumnMedium="4">
-                        <BSLabel>Title</BSLabel>
-                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.Title" ValidateOnInput="true"/>
-                        <BSFeedback For="@(() => NewBook.Title)" ValidMessage="Title looks good."/>
-                    </BsRow>
-                    <BsRow Position="Position.Relative" ColumnMedium="4">
-                        <BSLabel>Language iso code</BSLabel>
-                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.LanguageIso" ValidateOnInput="true" placeholder="eg. 'en-us'"/>
-                        <BSFeedback For="@(() => NewBook.LanguageIso)" ValidMessage="LanguageIso looks good."/>
-                    </BsRow>
-                    <BsRow Position="Position.Relative" ColumnMedium="4">
-                        <BSLabel>Price</BSLabel>
-                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.Price" ValidateOnInput="true"/>
-                        <BSFeedback For="@(() => NewBook.Price)" ValidMessage="Price looks good."/>
-                    </BsRow>
-                    <BsRow Position="Position.Relative" ColumnMedium="4">
-                        <BSLabel>Published date</BSLabel>
-                        <BSInput InputType="InputType.Date" @bind-Value="NewBook.Published" ValidateOnInput="true"/>
-                        <BSFeedback For="@(() => NewBook.Published)" ValidMessage="Looks good."/>
-                    </BsRow>
-                    <BsRow Position="Position.Relative" ColumnMedium="4">
-                        <BSLabel>Description</BSLabel>
-                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.Description" ValidateOnInput="true"/>
-                        <BSFeedback For="@(() => NewBook.Description)" ValidMessage="Description looks good."/>
-                    </BsRow>
-                    <BsRow Position="Position.Relative" ColumnMedium="4">
-                        <BSLabel>Quantity in stock</BSLabel>
-                        <BSInput InputType="InputType.Number" @bind-Value="NewBook.Quantity"/>
-                    </BsRow>
-
-                    <BsRow Position="Position.Relative" ColumnMedium="4">
-                        <BSLabel>Author</BSLabel>
-                        <BSInput id="datalistInput" InputType="InputType.DataList" list="datalistOptions" @bind-Value="@NewBook.AuthorName" @onchange="HandleAuthorOnChange"/>
-                        <datalist id="datalistOptions">
-                            @if (_authors != null && _authors.Any())
-                            {
-                                foreach (Author author in _authors)
-                                {
-                                        <option data-authorid="@author.AuthorId" value="@author.Firstname @author.Lastname"></option>
-                                }
-                            }
-                        </datalist>
-                    </BsRow>
-                    <BSRow Position="Position.Relative" ColumnMedium="4">
-                        <BSLabel>Author's birthday</BSLabel>
-                        <BSInput InputType="InputType.Date" @bind-Value="NewBook.AuthorBirthday" ValidateOnInput="true"/>
-                        <BSFeedback For="@(() => NewBook.AuthorBirthday)" ValidMessage="Description looks good."/>
-                    </BSRow>
-
-                    <div class="d-flex flex-row justify-content-between">
-                        <div>
-                            <BSButton Color="BSColor.Danger" @onclick="DeleteBook">Delete</BSButton>
-                        </div>
-                        <div>
-                            <BSButton Color="BSColor.Primary" IsSubmit="true">Submit</BSButton>
-                            <BSButton Color="BSColor.Primary" IsReset="true">Reset</BSButton>
-                        </div>
-                    </div>
-                </BSForm>
-            </section>
-            <hr/>
-
-            <section>
-                <h3>Edit existing book</h3>
-
-                @if (_books != null && _books.Any())
-                {
-                    <div class="d-flex flex-column gap-3">
-                        @if (_books != null && _books.Any())
-                        {
-                            foreach (Book book in _books)
-                            {
-                                var author = _authors?.FirstOrDefault(author => author.AuthorId == book.Author);
-                                var quantity = _inventory?.Where(inv => inv.Isbn == book.Isbn13 && inv.StoreId == _store?.StoreId).Select(s => s.Quantity).FirstOrDefault();
-
-                                <BSButton @onclick="() => HandleAvailableBookClick(book, author, quantity)" class="m-0 p-0 card-button">
-                                    <BSCard CardType="CardType.Card" class="card bg-light m-0 p-0">
-                                        <BSCard CardType="CardType.Body" class="text-start">
-                                            <BSCard CardType="CardType.Title">@book.Title</BSCard>
-                                            <BSCard CardType="CardType.Subtitle">@author?.Firstname @author?.Lastname</BSCard>
-                                            <BSCard CardType="CardType.Text">@book.Description</BSCard>
-                                        </BSCard>
-                                    </BSCard>
-                                </BSButton>
-                            }
-                        }
-                    </div>
-                }
-            </section>
-        </Content>
-
-        <Footer Context="modal">
-            <div style="margin-left:0; margin-right: auto;">
-                <BSButton Color="BSColor.Secondary" @onclick="modal.HideAsync">Cancel</BSButton>
-            </div>
-        </Footer>
-    </BSModal>
-
+    
+    <BookForm RefreshState="@RefreshState" Store="@_store" Authors="@_authors" Books="@_books" Inventory="@_inventory"/>
 
     @if (_inventory != null)
     {
         <div class="d-flex flex-column gap-3 w-auto">
-            @if (_inventory != null){
-                foreach (var inventoryRow in _inventory)
+            @foreach (var inventoryRow in _inventory)
+            {
+                if (_books != null && _books.Any())
                 {
-                    if (_books != null && _books.Any())
+                    @foreach (Book book in _books.Where(bok => bok.Isbn13 == inventoryRow.Isbn))
                     {
-                        @foreach (Book book in _books.Where(bok => bok.Isbn13 == inventoryRow.Isbn))
-                        {
-                            var author = _authors.FirstOrDefault(author => author.AuthorId == book.Author);
+                        var author = _authors.FirstOrDefault(author => author.AuthorId == book.Author);
 
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">@book.Title</h5>
-                                    <h6 class="card-subtitle mb-2 text-muted">@author?.Firstname @author?.Lastname</h6>
-                                    <p class="card-text">@book.Description</p>
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">@book.Title</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">@author?.Firstname @author?.Lastname</h6>
+                                <p class="card-text">@book.Description</p>
 
-                                    <div class="d-flex flex-row justify-content-between">
-                                        <h6 class="card-text">@book.Isbn13</h6>
-                                        <div>@inventoryRow.Quantity in stock</div>
-                                    </div>
+                                <div class="d-flex flex-row justify-content-between">
+                                    <h6 class="card-text">@book.Isbn13</h6>
+                                    <div>@inventoryRow.Quantity in stock</div>
                                 </div>
                             </div>
-                        }
+                        </div>
                     }
                 }
             }
@@ -192,245 +70,28 @@
 </script>
 
 @code {
-    [Parameter]
-    public EventCallback<Author> OnOptionSelect { get; set; }
     [Parameter] public int StoreId { get; set; }
-    private IEnumerable<Inventory>? _inventory;
     private IEnumerable<Book>? _books;
     private IEnumerable<Author>? _authors;
+    private IEnumerable<Inventory>? _inventory;    
     private Models.Store? _store;
-    
-    private readonly string[] _dateFormats = { "yyyy", "MM", "dd", "yyyyMM", "yyyyMMdd", "MMddyyyy", "yyyy-MM-dd"};
+
     
     protected override async Task OnInitializedAsync()
     {
-        //Finns bättre sätt att hämta data med limits och pagination och whatever men aja
-        _store = await Context.Stores.AsQueryable().FirstOrDefaultAsync(store => store.StoreId == StoreId);
-        _inventory = await Context.Inventories.Where(inventory => inventory.StoreId == StoreId).ToListAsync();
+        // Finns bättre sätt att hämta data med limits och pagination och whatever men aja
+        _inventory = await Context.Inventories.Include(inv=>inv.Store).Where(inv => inv.Store.StoreId == StoreId).ToListAsync();
+        _store = _inventory.FirstOrDefault()?.Store;
         _authors = await Context.Authors.ToListAsync();
         _books = await Context.Books.ToListAsync();
         
-        base.OnInitializedAsync();
+        await base.OnInitializedAsync();
     }
 
-    private AddBookForm NewBook { get; set; } = new();
-    private string _message = "";
-
-    private void OnReset(IBSForm bSForm)
-    {
-        bSForm.Reset();
-    }
-    
-    private void OnSubmit(EditContext e)
-    {
-        if (e.Validate()) CreateBook();
-    }
-    
-    private async void CreateBook()
-    {
-        Author author = new Author { Firstname = NewBook.AuthorFirstname!, Lastname = NewBook.AuthorLastname!, Birthday = NewBook.AuthorBirthday };
-        var authorId = await Context.UpsertAuthor(author);
-
-        Book book = new Book(NewBook.Isbn13!,
-            NewBook.Title!,
-            NewBook.LanguageIso!,
-            (decimal)NewBook.Price!,
-            NewBook.Published,
-            authorId,
-            NewBook.Description 
-        );
-        
-        await Context.UpsertBook(book, NewBook.Quantity, _store);
-    }
-    
-    private async void DeleteBook()
-    {
-        await Context.DeleteBook(NewBook.Isbn13!);
-    }
-
-    private async Task UpdateForm()
-    {
-        await GetBookInfo();
-        
+    public async void RefreshState()
+    { 
+        //TODO: refetching data shouldn't be necessary
+        await OnInitializedAsync();
         StateHasChanged();
     }
-   
-    private async Task GetBookInfo(){
-        // invalid isbn
-        if (!string.IsNullOrEmpty(_message)) return;
-        if (string.IsNullOrEmpty(NewBook.Isbn13)) return;
-        
-        JObject? bok = await DAO.GetBookByISBN(NewBook.Isbn13);
-        if (bok == null) return;
-
-        if (string.IsNullOrEmpty(NewBook.Title)) NewBook.Title = bok["title"]?.ToString();
-        if (string.IsNullOrEmpty(NewBook.Description)) NewBook.Description = bok["subtitle"]?.ToString();
-
-        
-        if (NewBook.Published == null)
-        {
-            var convertedDate = ConvertDate(bok["publish_date"]?.ToString());
-            NewBook.Published = convertedDate;
-        }
-        
-        JObject? author = await DAO.GetAuthors(bok["authors"]?[0]?.ToString());
-        if (author == null) return;
-
-        var names = author["name"]?.ToString();
-        if (string.IsNullOrEmpty(NewBook.AuthorFirstname) && string.IsNullOrEmpty(NewBook.AuthorLastname)) NewBook.AuthorName = names;
-                    
-        if (NewBook.AuthorBirthday == null)
-        {
-            var convertedDate = ConvertDate(author["birth_date"]?.ToString());
-            NewBook.AuthorBirthday = convertedDate;
-        }
-    }
-
-    private DateTime? ConvertDate(string dateString)
-    {
-        if (string.IsNullOrEmpty(dateString)) return null;
-        
-        if (DateTime.TryParseExact(dateString, _dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
-        {
-            return result;
-        }
-
-        return null;
-    }
-
-    private async Task HandleAvailableBookClick(Book book, Author? author, int? quantity)
-    {
-        NewBook.Isbn13 = book.Isbn13;
-        NewBook.Description = book.Description;
-        NewBook.Title = book.Title;
-        NewBook.Price = (double?)book.Price;
-        NewBook.Published = book.Published;
-        NewBook.LanguageIso = book.LanguageIso;
-        NewBook.Quantity = quantity ?? 0;
-
-        if (author != null)
-        {
-            NewBook.AuthorBirthday = author.Birthday;
-            NewBook.AuthorName = author.Firstname + " " + author.Lastname;
-        }
-
-        await JS.InvokeVoidAsync("scrollToForm");
-        
-        StateHasChanged();
-    }
-
-    private async Task HandleAuthorOnChange()
-    {
-        int? selectedAuthorId = null;
-
-        try
-        {
-            selectedAuthorId = await JS.InvokeAsync<int?>("getSelectedAuthorId");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Invalid or no authorId returned from js runtime");
-        }
-        
-        if (selectedAuthorId == null) return;
-        
-        var author = _authors?.FirstOrDefault(auth => auth.AuthorId == selectedAuthorId);
-        if (author!=null) SetAuthorBirthday(author);
-    }
-
-    private void SetAuthorBirthday(Author author)
-    {
-        // int authorId;
-        //
-        // if (Int32.TryParse((string?)evt.Value, out authorId))
-        // {
-        //     var author = _authors?.FirstOrDefault(auth=>auth.AuthorId == authorId);
-        //     
-        // }
-        
-        NewBook.AuthorBirthday = author?.Birthday;
-        StateHasChanged();
-        
-    }
-    
-    public class AddBookForm
-    {
-        private string? _isbn13;
-        
-        [Required(ErrorMessage = "Provide an Isbn13 or else")]
-        // RegEx from https://www.oreilly.com/library/view/regular-expressions-cookbook/9781449327453/ch04s13.html
-        [RegularExpression(@"^(?:ISBN(?:-13)?:?\ )?(?=[0-9]{13}$|(?=(?:[0-9]+[-\ ]){4})[-\ 0-9]{17}$)97[89][-\ ]?[0-9]{1,5}[-\ ]?[0-9]+[-\ ]?[0-9]+[-\ ]?[0-9]$", ErrorMessage = "Must comply to ISBN-13 formatting ヽ（≧□≦）ノ")] // Chat-GPT
-        public string? Isbn13
-        {
-            get => _isbn13;
-            set
-            {
-                _isbn13 = value;
-        }}
-
-        [Required(ErrorMessage = "Provide a title or else")]
-        public string? Title {get;set;}
-        
-        [IsIso]
-        [Required(ErrorMessage = "Provide a language iso code or else")]
-        public string? LanguageIso {get;set;}
-        
-        [Required(ErrorMessage = "Provide a price or else")]
-        public double? Price {get;set;}
-        
-        [Required(ErrorMessage = "Provide a date of publication or else")]
-        public DateTime? Published {get;set;}
-        
-        [Required(ErrorMessage = "Provide a description or else")]
-        public string? Description {get;set;}
-
-        private string? _authorName;
-
-        [Required(ErrorMessage = "Provide the author's name or else")]
-        [MaxLength(80)]
-        public string AuthorName
-        {
-            get => _authorName;
-            set
-            {
-                _authorName = value;
-
-                var namesArray = value.Split(" ");
-                AuthorFirstname = namesArray[0];
-                AuthorLastname = namesArray[^1];
-            }
-        }
-        
-        public string? AuthorFirstname {get;private set;}
-        
-        public string? AuthorLastname {get;private set;}
-        
-        [Required(ErrorMessage = "Provide the author's birthday or else")]
-        public DateTime? AuthorBirthday {get;set;}
-
-        public int Quantity { get; set; } = 0;
-    }
-    
-    sealed class IsIso : ValidationAttribute
-    {
-        // https://stackoverflow.com/a/48359145
-        public override bool IsValid(object value)
-        {
-            string code = value as string;
-            if (string.IsNullOrEmpty(code)) return true;
-
-            CultureInfo[] cultures = CultureInfo.GetCultures(CultureTypes.SpecificCultures);
-
-            foreach (var culture in cultures)
-            {
-                if (culture.Name.Equals(code, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-    }
-
 }

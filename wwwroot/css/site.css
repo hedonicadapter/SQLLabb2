@@ -73,6 +73,10 @@ a, .btn-link {
 
     .card-button{
         all:unset !important;
+        transition:all 0.15s ease-out !important;
+    }
+    .card-button:active{
+        opacity:.6 !important;
     }
     .card-button:hover{
         cursor:pointer !important;
