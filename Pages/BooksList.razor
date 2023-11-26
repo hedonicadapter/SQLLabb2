@@ -1,5 +1,43 @@
-﻿<h3>BooksList</h3>
+﻿@page "/books"
+@using BlazorApp2.Models
+@using BlazorApp2.Data
+@using Microsoft.EntityFrameworkCore
+@inject Labb1DbContext Context;
+
+<TransitionWrapper>
+<h3>Books</h3>
+
+<div class="d-flex flex-column gap-3 flex-wrap">
+    @if (_books != null && _books.Any()){
+        foreach (Book book in _books)
+            {
+                <button class="card-button w-25">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex flex-row justify-content-between align-content-center">
+                                <h5 class="card-title">@book.Title</h5>
+                                <h6 class="card-subtitle text-muted">ISBN: @book.Isbn13</h6>
+                            </div>
+                            <div class="d-flex flex-column gap-1 mb-2">
+                                <h6 class="card-subtitle text-muted">@book.AuthorNavigation.Firstname @book.AuthorNavigation.Lastname</h6>
+                                <h6 class="card-subtitle text-muted">Published @book.Published</h6>
+                            </div>
+                            <p class="card-text">@book.Description</p>
+                        </div>
+                    </div>
+                </button>
+            }
+    }
+</div>
+</TransitionWrapper>
 
 @code {
+    private IEnumerable<Book>? _books;
     
+    protected override async Task OnInitializedAsync()
+    {
+        _books = await Context.Books.Include(bok=>bok.AuthorNavigation).ToListAsync();
+        
+        await base.OnInitializedAsync();
+    }
 }

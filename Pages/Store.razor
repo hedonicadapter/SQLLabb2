@@ -30,12 +30,10 @@
                 {
                     @foreach (Book book in _books.Where(bok => bok.Isbn13 == inventoryRow.Isbn))
                     {
-                        var author = _authors.FirstOrDefault(author => author.AuthorId == book.Author);
-
                         <div class="card">
                             <div class="card-body">
                                 <h5 class="card-title">@book.Title</h5>
-                                <h6 class="card-subtitle mb-2 text-muted">@author?.Firstname @author?.Lastname</h6>
+                                <h6 class="card-subtitle mb-2 text-muted">@book.AuthorNavigation.Firstname @book.AuthorNavigation.Lastname</h6>
                                 <p class="card-text">@book.Description</p>
 
                                 <div class="d-flex flex-row justify-content-between">
@@ -48,6 +46,10 @@
                 }
             }
         </div>
+    }
+    else
+    {
+        <p>Nothing to see here ƪ(˘⌣˘)ʃ try adding a book</p>
     }
 </TransitionWrapper>
 <script>
@@ -82,8 +84,8 @@
         // Finns bättre sätt att hämta data med limits och pagination och whatever men aja
         _inventory = await Context.Inventories.Include(inv=>inv.Store).Where(inv => inv.Store.StoreId == StoreId).ToListAsync();
         _store = _inventory.FirstOrDefault()?.Store;
+        _books = await Context.Books.Include(bok=>bok.AuthorNavigation).ToListAsync();
         _authors = await Context.Authors.ToListAsync();
-        _books = await Context.Books.ToListAsync();
         
         await base.OnInitializedAsync();
     }

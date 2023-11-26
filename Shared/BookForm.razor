@@ -111,7 +111,11 @@
                                 <BSButton @onclick="() => HandleAvailableBookClick(book, author, quantity)" class="m-0 p-0 card-button">
                                     <BSCard CardType="CardType.Card" class="card bg-light m-0 p-0">
                                         <BSCard CardType="CardType.Body" class="text-start">
-                                            <BSCard CardType="CardType.Title">@book.Title</BSCard>
+                                            <div class="d-flex flex-row justify-content-between align-content-center">
+                                                <BSCard CardType="CardType.Title">@book.Title</BSCard>
+                                                <BSCard CardType="CardType.Subtitle" class="text-muted">@book.Isbn13</BSCard>
+                                            </div>
+                                            
                                             <BSCard CardType="CardType.Subtitle">@author?.Firstname @author?.Lastname</BSCard>
                                             <BSCard CardType="CardType.Text">@book.Description</BSCard>
                                         </BSCard>
