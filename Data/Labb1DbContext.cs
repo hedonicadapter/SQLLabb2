@@ -51,7 +51,7 @@ public partial class Labb1DbContext : DbContext
 
         if (exists != null) return exists.AuthorId;
 
-        Authors.Add(author);
+        await Authors.AddAsync(author);
         await SaveChangesAsync();
         
         return author.AuthorId;
@@ -61,9 +61,22 @@ public partial class Labb1DbContext : DbContext
         await UpsertInventory(book.Isbn13, quantity, store);
         
         var exists = await Books.FirstOrDefaultAsync(entry =>
-            entry.Isbn13 == book.Isbn13); 
+            entry.Isbn13 == book.Isbn13);
 
-        if (exists != null) return exists.Isbn13;
+        if (exists != null)
+        {
+            exists.Title = book.Title;
+            exists.Author = book.Author;
+            exists.Description = book.Description;
+            exists.Price = book.Price;
+            exists.LanguageIso = book.LanguageIso;
+
+            var newAuthorInfo = await Authors.FirstOrDefaultAsync(auth => auth.AuthorId == book.Author);
+            if (newAuthorInfo != null) await UpsertAuthor(newAuthorInfo);
+            
+            await SaveChangesAsync();
+            return exists.Isbn13;
+        }
 
         await Books.AddAsync(book);
         
@@ -81,18 +94,20 @@ public partial class Labb1DbContext : DbContext
         {
             await Inventories.AddAsync(new Inventory{Isbn = isbn13, Quantity = quantity, Store = store, StoreId = store.StoreId});
         }
+        
+        await SaveChangesAsync();
     }
     
-    public async Task DeleteBook(Book book, Store store)
+    public async Task DeleteBook(string isbn)
     {
-        await SetStock(book.Isbn13, 0, store);
-        
-        var exists = await Books.FirstOrDefaultAsync(entry =>
-            entry.Isbn13 == book.Isbn13); 
-        if (exists == null) return;
+        var bookToDelete = await Books.Include(bok => bok.Inventories).FirstOrDefaultAsync(bok => bok.Isbn13 == isbn);
+        if (bookToDelete == null) return;
 
-        Books.Remove(exists);
-        
+        var bookInStock = bookToDelete.Inventories.ToList();
+        Inventories.RemoveRange(bookInStock);
+        await SaveChangesAsync();
+
+        Books.Remove(bookToDelete);
         await SaveChangesAsync();
     }
 

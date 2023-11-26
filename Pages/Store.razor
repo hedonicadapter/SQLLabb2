@@ -19,12 +19,13 @@
 
     <div class="d-flex flex-row justify-content-between align-content-center pb-3">
         <h4>Inventory</h4>
-        <BSButton Color="BSColor.Primary" Target="addBookModal">Add book</BSButton>
+        <BSButton Color="BSColor.Primary" Target="addBookModal">Edit</BSButton>
     </div>
 
     <BSModal HideOnValidSubmit="true" IsCentered="true" DataId="addBookModal">
         <Header>
-            <h2>Add book</h2></Header>
+            <h2>Book metadata</h2>
+        </Header>
         <Content>
             <section id="new-book-section">
                 <h3>New book</h3>
@@ -71,27 +72,33 @@
                         <BSInput InputType="InputType.Number" @bind-Value="NewBook.Quantity"/>
                     </BsRow>
 
-                    <BSRow Position="Position.Relative" ColumnMedium="4">
-                        <BSLabel>Author's name</BSLabel>
-                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.AuthorFirstname" ValidateOnInput="true"/>
-                        <BSFeedback For="@(() => NewBook.AuthorFirstname)" ValidMessage="Description looks good."/>
-                    </BSRow>
-                    <BSRow Position="Position.Relative" ColumnMedium="4">
-                        <BSLabel>Author's last name</BSLabel>
-                        <BSInput InputType="InputType.Text" @bind-Value="NewBook.AuthorLastname" ValidateOnInput="true"/>
-                        <BSFeedback For="@(() => NewBook.AuthorLastname)" ValidMessage="Description looks good."/>
-                    </BSRow>
+                    <BsRow Position="Position.Relative" ColumnMedium="4">
+                        <BSLabel>Author</BSLabel>
+                        <BSInput id="datalistInput" InputType="InputType.DataList" list="datalistOptions" @bind-Value="@NewBook.AuthorName" @onchange="HandleAuthorOnChange"/>
+                        <datalist id="datalistOptions">
+                            @if (_authors != null && _authors.Any())
+                            {
+                                foreach (Author author in _authors)
+                                {
+                                        <option data-authorid="@author.AuthorId" value="@author.Firstname @author.Lastname"></option>
+                                }
+                            }
+                        </datalist>
+                    </BsRow>
                     <BSRow Position="Position.Relative" ColumnMedium="4">
                         <BSLabel>Author's birthday</BSLabel>
                         <BSInput InputType="InputType.Date" @bind-Value="NewBook.AuthorBirthday" ValidateOnInput="true"/>
                         <BSFeedback For="@(() => NewBook.AuthorBirthday)" ValidMessage="Description looks good."/>
                     </BSRow>
 
-                    <div style="margin-right: 0; margin-left: auto; width: fit-content">
-                        <BSCol Column="12">
+                    <div class="d-flex flex-row justify-content-between">
+                        <div>
+                            <BSButton Color="BSColor.Danger" @onclick="DeleteBook">Delete</BSButton>
+                        </div>
+                        <div>
                             <BSButton Color="BSColor.Primary" IsSubmit="true">Submit</BSButton>
                             <BSButton Color="BSColor.Primary" IsReset="true">Reset</BSButton>
-                        </BSCol>
+                        </div>
                     </div>
                 </BSForm>
             </section>
@@ -103,29 +110,23 @@
                 @if (_books != null && _books.Any())
                 {
                     <div class="d-flex flex-column gap-3">
-                        @foreach (Book book in _books)
+                        @if (_books != null && _books.Any())
                         {
-                            var author = @Context.Authors.FirstOrDefault(author => author.AuthorId == book.Author);
-                            var quantity = _inventory?.Where(inv => inv.Isbn == book.Isbn13 && inv.StoreId == _store?.StoreId).Select(s=>s.Quantity).FirstOrDefault();
-                            
-                            <BSButton @onclick="()=>HandleAvailableBookClick(book, author, quantity)" class="m-0 p-0 card-button">
-                                <BSCard CardType="CardType.Card" class="card bg-light m-0 p-0">
-                                    <BSCard CardType="CardType.Body" class="text-start">
-                                        <BSCard CardType="CardType.Title">@book.Title</BSCard>
-                                        <BSCard CardType="CardType.Subtitle">@author?.Firstname @author?.Lastname</BSCard>
-                                        <BSCard CardType="CardType.Text">@book.Description</BSCard>   
+                            foreach (Book book in _books)
+                            {
+                                var author = _authors?.FirstOrDefault(author => author.AuthorId == book.Author);
+                                var quantity = _inventory?.Where(inv => inv.Isbn == book.Isbn13 && inv.StoreId == _store?.StoreId).Select(s => s.Quantity).FirstOrDefault();
+
+                                <BSButton @onclick="() => HandleAvailableBookClick(book, author, quantity)" class="m-0 p-0 card-button">
+                                    <BSCard CardType="CardType.Card" class="card bg-light m-0 p-0">
+                                        <BSCard CardType="CardType.Body" class="text-start">
+                                            <BSCard CardType="CardType.Title">@book.Title</BSCard>
+                                            <BSCard CardType="CardType.Subtitle">@author?.Firstname @author?.Lastname</BSCard>
+                                            <BSCard CardType="CardType.Text">@book.Description</BSCard>
+                                        </BSCard>
                                     </BSCard>
-                                </BSCard>
-                            </BSButton>
-                            @* <button> *@
-                            @*     <div class="card"> *@
-                            @*         <div class="card-body"> *@
-                            @*             <h5 class="card-title"></h5> *@
-                            @*             <h6 class="card-subtitle mb-2 text-muted"></h6> *@
-                            @*             <p class="card-text"></p> *@
-                            @*         </div> *@
-                            @*     </div> *@
-                            @* </button> *@
+                                </BSButton>
+                            }
                         }
                     </div>
                 }
@@ -143,26 +144,28 @@
     @if (_inventory != null)
     {
         <div class="d-flex flex-column gap-3 w-auto">
-            @foreach (var inventoryRow in _inventory)
-            {
-                if (_books != null && _books.Any())
+            @if (_inventory != null){
+                foreach (var inventoryRow in _inventory)
                 {
-                    @foreach (Book book in _books.Where(bok => bok.Isbn13 == inventoryRow.Isbn))
+                    if (_books != null && _books.Any())
                     {
-                        var author = @Context.Authors.FirstOrDefault(author => author.AuthorId == book.Author);
+                        @foreach (Book book in _books.Where(bok => bok.Isbn13 == inventoryRow.Isbn))
+                        {
+                            var author = _authors.FirstOrDefault(author => author.AuthorId == book.Author);
 
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">@book.Title</h5>
-                                <h6 class="card-subtitle mb-2 text-muted">@author?.Firstname @author?.Lastname</h6>
-                                <p class="card-text">@book.Description</p>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">@book.Title</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">@author?.Firstname @author?.Lastname</h6>
+                                    <p class="card-text">@book.Description</p>
 
-                                <div class="d-flex flex-row justify-content-between">
-                                    <h6 class="card-text">@book.Isbn13</h6>
-                                    <div>@inventoryRow.Quantity in stock</div>
+                                    <div class="d-flex flex-row justify-content-between">
+                                        <h6 class="card-text">@book.Isbn13</h6>
+                                        <div>@inventoryRow.Quantity in stock</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        }
                     }
                 }
             }
@@ -173,19 +176,38 @@
   window.scrollToForm = () => {
     document.querySelector("#new-book-section")?.scrollIntoView({block: "start", inline: "nearest", behavior:"smooth"});
   };
+  
+  window.getSelectedAuthorId = () => {
+      const datalist = document.getElementById('datalistOptions');
+      const selectedAuthor = document.getElementById('datalistInput').value;
+      if (!datalist || !selectedAuthor) return;
+      
+      const optionsArray = Array.from(datalist.options);
+      
+      const selectedAuthorId = optionsArray.find(selectedOption=>selectedOption.value === selectedAuthor)?.getAttribute('data-authorid');
+      
+      return +selectedAuthorId;
+  }
+  
 </script>
 
 @code {
+    [Parameter]
+    public EventCallback<Author> OnOptionSelect { get; set; }
     [Parameter] public int StoreId { get; set; }
     private IEnumerable<Inventory>? _inventory;
-    private Models.Store? _store;
     private IEnumerable<Book>? _books;
-    public string[] dateFormats = { "yyyy", "MM", "dd", "yyyyMM", "yyyyMMdd", "MMddyyyy", "yyyy-MM-dd" /* Add more formats as needed */ };
+    private IEnumerable<Author>? _authors;
+    private Models.Store? _store;
+    
+    private readonly string[] _dateFormats = { "yyyy", "MM", "dd", "yyyyMM", "yyyyMMdd", "MMddyyyy", "yyyy-MM-dd"};
     
     protected override async Task OnInitializedAsync()
     {
+        //Finns bättre sätt att hämta data med limits och pagination och whatever men aja
         _store = await Context.Stores.AsQueryable().FirstOrDefaultAsync(store => store.StoreId == StoreId);
         _inventory = await Context.Inventories.Where(inventory => inventory.StoreId == StoreId).ToListAsync();
+        _authors = await Context.Authors.ToListAsync();
         _books = await Context.Books.ToListAsync();
         
         base.OnInitializedAsync();
@@ -203,30 +225,27 @@
     {
         if (e.Validate()) CreateBook();
     }
-
+    
     private async void CreateBook()
     {
-        // Book already exists
-        if (_books.FirstOrDefault(book => book.Isbn13 == NewBook.Isbn13) != null)
-        {
-            _message = "Book with this ISBN already exists (≧﹏ ≦)";
-        }
-        else
-        {
-            Author author = new Author { Firstname = NewBook.AuthorFirstname!, Lastname = NewBook.AuthorLastname!, Birthday = NewBook.AuthorBirthday };
-            var authorId = await Context.UpsertAuthor(author);
+        Author author = new Author { Firstname = NewBook.AuthorFirstname!, Lastname = NewBook.AuthorLastname!, Birthday = NewBook.AuthorBirthday };
+        var authorId = await Context.UpsertAuthor(author);
 
-            Book book = new Book(NewBook.Isbn13!,
-                NewBook.Title!,
-                NewBook.LanguageIso!,
-                (decimal)NewBook.Price!,
-                NewBook.Published,
-                authorId,
-                NewBook.Description 
-            );
-            
-            await Context.UpsertBook(book, NewBook.Quantity, _store);
-        }
+        Book book = new Book(NewBook.Isbn13!,
+            NewBook.Title!,
+            NewBook.LanguageIso!,
+            (decimal)NewBook.Price!,
+            NewBook.Published,
+            authorId,
+            NewBook.Description 
+        );
+        
+        await Context.UpsertBook(book, NewBook.Quantity, _store);
+    }
+    
+    private async void DeleteBook()
+    {
+        await Context.DeleteBook(NewBook.Isbn13!);
     }
 
     private async Task UpdateForm()
@@ -257,9 +276,8 @@
         JObject? author = await DAO.GetAuthors(bok["authors"]?[0]?.ToString());
         if (author == null) return;
 
-        var names = author["name"]?.ToString().Split(" ");
-        if (string.IsNullOrEmpty(NewBook.AuthorFirstname)) NewBook.AuthorFirstname = names?[0];
-        if (string.IsNullOrEmpty(NewBook.AuthorLastname)) NewBook.AuthorLastname = names?[^1];
+        var names = author["name"]?.ToString();
+        if (string.IsNullOrEmpty(NewBook.AuthorFirstname) && string.IsNullOrEmpty(NewBook.AuthorLastname)) NewBook.AuthorName = names;
                     
         if (NewBook.AuthorBirthday == null)
         {
@@ -272,7 +290,7 @@
     {
         if (string.IsNullOrEmpty(dateString)) return null;
         
-        if (DateTime.TryParseExact(dateString, dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
+        if (DateTime.TryParseExact(dateString, _dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
         {
             return result;
         }
@@ -293,14 +311,48 @@
         if (author != null)
         {
             NewBook.AuthorBirthday = author.Birthday;
-            NewBook.AuthorFirstname = author.Firstname;
-            NewBook.AuthorLastname = author.Lastname;
+            NewBook.AuthorName = author.Firstname + " " + author.Lastname;
         }
 
         await JS.InvokeVoidAsync("scrollToForm");
         
         StateHasChanged();
     }
+
+    private async Task HandleAuthorOnChange()
+    {
+        int? selectedAuthorId = null;
+
+        try
+        {
+            selectedAuthorId = await JS.InvokeAsync<int?>("getSelectedAuthorId");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Invalid or no authorId returned from js runtime");
+        }
+        
+        if (selectedAuthorId == null) return;
+        
+        var author = _authors?.FirstOrDefault(auth => auth.AuthorId == selectedAuthorId);
+        if (author!=null) SetAuthorBirthday(author);
+    }
+
+    private void SetAuthorBirthday(Author author)
+    {
+        // int authorId;
+        //
+        // if (Int32.TryParse((string?)evt.Value, out authorId))
+        // {
+        //     var author = _authors?.FirstOrDefault(auth=>auth.AuthorId == authorId);
+        //     
+        // }
+        
+        NewBook.AuthorBirthday = author?.Birthday;
+        StateHasChanged();
+        
+    }
+    
     public class AddBookForm
     {
         private string? _isbn13;
@@ -331,14 +383,27 @@
         
         [Required(ErrorMessage = "Provide a description or else")]
         public string? Description {get;set;}
-        
+
+        private string? _authorName;
+
         [Required(ErrorMessage = "Provide the author's name or else")]
-        [MaxLength(40)]
-        public string? AuthorFirstname {get;set;}
+        [MaxLength(80)]
+        public string AuthorName
+        {
+            get => _authorName;
+            set
+            {
+                _authorName = value;
+
+                var namesArray = value.Split(" ");
+                AuthorFirstname = namesArray[0];
+                AuthorLastname = namesArray[^1];
+            }
+        }
         
-        [Required(ErrorMessage = "Provide the author's last name or else")]
-        [MaxLength(40)]
-        public string? AuthorLastname {get;set;}
+        public string? AuthorFirstname {get;private set;}
+        
+        public string? AuthorLastname {get;private set;}
         
         [Required(ErrorMessage = "Provide the author's birthday or else")]
         public DateTime? AuthorBirthday {get;set;}
@@ -367,4 +432,5 @@
             return false;
         }
     }
+
 }
