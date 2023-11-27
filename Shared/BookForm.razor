@@ -3,6 +3,7 @@
 @using BlazorStrap
 @using System.ComponentModel.DataAnnotations
 @using System.Globalization
+@using BlazorApp2.Shared.Utils
 @using Microsoft.EntityFrameworkCore
 @using Newtonsoft.Json.Linq
 @using Position = BlazorStrap.Position
@@ -204,7 +205,7 @@
         
         if (NewBook.Published == null)
         {
-            var convertedDate = ConvertDate(bok["publish_date"]?.ToString());
+            var convertedDate = DateTimeUtil.ConvertDate(bok["publish_date"]?.ToString());
             NewBook.Published = convertedDate;
         }
         
@@ -216,7 +217,7 @@
                         
             if (NewBook.AuthorBirthday == null)
             {
-                var convertedDate = ConvertDate(author["birth_date"]?.ToString());
+                var convertedDate = DateTimeUtil.ConvertDate(author["birth_date"]?.ToString());
                 NewBook.AuthorBirthday = convertedDate;
             }
         }
@@ -225,19 +226,6 @@
 
     }
     
-    private readonly string[] _dateFormats = { "yyyy", "MM", "dd", "yyyyMM", "yyyyMMdd", "MMddyyyy", "yyyy-MM-dd"};
-    private DateTime? ConvertDate(string dateString)
-    {
-        if (string.IsNullOrEmpty(dateString)) return null;
-        
-        if (DateTime.TryParseExact(dateString, _dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime result))
-        {
-            return result;
-        }
-
-        return null;
-    }
-
     private async Task HandleAvailableBookClick(Book book, Author? author, int? quantity)
     {
         NewBook.Isbn13 = book.Isbn13;
@@ -281,10 +269,8 @@
                 if (author!=null) SetAuthorBirthday(author);
             }
         
-        
             StateHasChanged();
         }
-
     }
 
     private void SetAuthorBirthday(Author? author)

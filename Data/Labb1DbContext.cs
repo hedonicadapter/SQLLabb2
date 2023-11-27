@@ -113,6 +113,18 @@ public partial class Labb1DbContext : DbContext
         Books.Remove(bookToDelete);
         await SaveChangesAsync();
     }
+    public async Task DeleteAuthor(int authorId)
+    {
+        var authorToDelete = await Authors.Include(auth => auth.Books).FirstOrDefaultAsync(auth => auth.AuthorId == authorId);
+        if (authorToDelete == null) return;
+
+        var authorInBooks = authorToDelete.Books.ToList();
+        Books.RemoveRange(authorInBooks);
+        await SaveChangesAsync();
+
+        Authors.Remove(authorToDelete);
+        await SaveChangesAsync();
+    }
 
     private async Task SetStock(string isbn13, int quantity, Store store)
     {

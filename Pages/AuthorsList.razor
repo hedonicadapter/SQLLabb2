@@ -1,5 +1,213 @@
-﻿<h3>AuthorsList</h3>
+﻿@page "/authors"
+@using BlazorApp2.Models
+@using BlazorApp2.Data
+@using BlazorApp2.Shared.Utils
+@using BlazorStrap
+@using Microsoft.EntityFrameworkCore
+@using System.ComponentModel.DataAnnotations
+@using Newtonsoft.Json.Linq
+@inject Labb1DbContext Context;
+
+<TransitionWrapper>
+    <div class="d-flex flex-row justify-content-between align-content-center pb-3">
+        <h3>Authors</h3>
+        <BSButton Color="BSColor.Primary" Target="editAuthorModal">Edit</BSButton>
+    </div>
+    
+    <BSModal HideOnValidSubmit="true" IsCentered="true" DataId="editAuthorModal">
+        <Header>
+            <h2>Author metadata</h2>
+        </Header>
+        <Content>
+            <BSForm Model="NewAuthor" IsRow="true" Gutters="Gutters.Medium" OnSubmit="@OnSubmit" OnReset="@OnReset">
+                <DataAnnotationsValidator/>
+                <BsRow Position="Position.Relative" ColumnMedium="12">
+                    @_message
+                    <BSValidationSummary/>
+                </BsRow>
+
+                <BsRow Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Firstname</BSLabel>
+                    <BSInput InputType="InputType.Text" @bind-Value="NewAuthor.Firstname" ValidateOnInput="true" OnBlur="@UpdateForm"/>
+                    <BSFeedback For="@(() => NewAuthor.AuthorFirstname)" @onchange="StateHasChanged" ValidMessage="Isbn looks good."/>
+                </BsRow>
+                <BsRow Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Lastname</BSLabel>
+                    <BSInput InputType="InputType.Text" @bind-Value="NewAuthor.Lastname" ValidateOnInput="true"/>
+                    <BSFeedback For="@(() => NewAuthor.AuthorLastnawme)" ValidMessage="Title looks good."/>
+                </BsRow>
+                <BsRow Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Birthday</BSLabel>
+                    <BSInput InputType="InputType.Text" @bind-Value="NewAuthor.Birthday" ValidateOnInput="true" placeholder="eg. 'en-us'"/>
+                    <BSFeedback For="@(() => NewAuthor.AuthorBirthday)" ValidMessage="LanguageIso looks good."/>
+                </BsRow>
+
+                <div class="d-flex flex-row justify-content-between">
+                    <div>
+                        <BSButton class="@(!string.IsNullOrEmpty(_message) ? "d-none":"d-inline-block")" Color="BSColor.Danger" @onclick="DeleteAuthor">Delete</BSButton>
+                    </div>
+                    <div>
+                        <BSButton Color="BSColor.Primary" IsSubmit="true">Submit</BSButton>
+                        <BSButton Color="BSColor.Primary" IsReset="true">Reset</BSButton>
+                    </div>
+                </div>
+            </BSForm>
+        </Content>
+
+        <Footer Context="modal">
+            <div style="margin-left:0; margin-right: auto;">
+                <BSButton Color="BSColor.Secondary" @onclick="modal.HideAsync">Cancel</BSButton>
+            </div>
+        </Footer>
+    </BSModal>
+
+    <BSAccordion class="">
+        @if (_authors != null && _authors.Any()){
+            foreach (Author author in _authors)
+            {
+                <BSAccordionItem DefaultShown="false">
+                    <Header>@author.Firstname @author.Lastname</Header>
+                    <Content>
+                        @foreach (Book book in @author.Books)
+                        {
+                            <button class="card-button w-25">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex flex-row justify-content-between align-content-center">
+                                            <h5 class="card-title">@book.Title</h5>
+                                            <h6 class="card-subtitle text-muted">ISBN: @book.Isbn13</h6>
+                                        </div>
+                                        <div class="d-flex flex-column gap-1 mb-2">
+                                            <h6 class="card-subtitle text-muted">@book.AuthorNavigation.Firstname @book.AuthorNavigation.Lastname</h6>
+                                            <h6 class="card-subtitle text-muted">Published @book.Published</h6>
+                                        </div>
+                                        <p class="card-text">@book.Description</p>
+                                    </div>
+                                </div>
+                            </button>
+                        }
+                    </Content>
+                </BSAccordionItem>
+                
+                
+            }
+        }
+    </BSAccordion>
+</TransitionWrapper>
 
 @code {
+    private NewAuthorForm NewAuthor { get; set; } = new();
+    private string _message = "";
+    private IEnumerable<Author>? _authors;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _authors = await Context.Authors.Include(auth=>auth.Books).ToListAsync();
+        
+        await base.OnInitializedAsync();
+    }
+    
+    public async Task RefreshState()
+    { 
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+    
+        private void OnReset(IBSForm bSForm)
+    {
+        bSForm.Reset();
+    }
+    
+    private async void OnSubmit(EditContext e)
+    {
+        if (e.Validate())
+        {
+            await CreateAuthor();
+        }
+    }
+
+    private async Task CreateAuthor()
+    {
+        Author author = new Author { Firstname = NewAuthor.AuthorFirstname!, Lastname = NewAuthor.AuthorLastname!, Birthday = NewAuthor.AuthorBirthday };
+        await Context.UpsertAuthor(author);
+
+        await RefreshState();
+    }
+
+    private async void DeleteAuthor()
+    {
+        await Context.DeleteAuthor(NewAuthor.AuthorId);
+        await RefreshState();
+    }
+
+    private async Task UpdateForm()
+    {
+        await GetAuthorInfo();
+        
+        StateHasChanged();
+    }
+
+    private async Task GetAuthorInfo(){
+        // invalid isbn
+        if (!string.IsNullOrEmpty(_message)) return;
+        if (string.IsNullOrEmpty(NewAuthor.AuthorFirstname)) return;
+        if (string.IsNullOrEmpty(NewAuthor.AuthorLastname)) return;
+        
+        JObject? auth = await DAO.FindAuthor(NewAuthor.AuthorFirstname, NewAuthor.AuthorLastname);
+        if (auth == null) return;
+
+        if (string.IsNullOrEmpty(NewAuthor.Title)) NewAuthor.Title = auth["title"]?.ToString();
+        if (string.IsNullOrEmpty(NewAuthor.Description)) NewAuthor.Description = auth["subtitle"]?.ToString();
+
+        
+        if (NewAuthor.Published == null)
+        {
+            var convertedDate = DateTimeUtil.ConvertDate(auth["publish_date"]?.ToString());
+            NewAuthor.Published = convertedDate;
+        }
+        
+        JObject? author = await DAO.GetAuthors(auth["authors"]?[0]?.ToString());
+        if (author != null)
+        {
+            var names = author["name"]?.ToString();
+            if (string.IsNullOrEmpty(NewAuthor.AuthorFirstname) && string.IsNullOrEmpty(NewAuthor.AuthorLastname)) NewAuthor.AuthorName = names;
+                        
+            if (NewAuthor.AuthorBirthday == null)
+            {
+                var convertedDate = DateTimeUtil.ConvertDate(author["birth_date"]?.ToString());
+                NewAuthor.AuthorBirthday = convertedDate;
+            }
+        }
+        
+        StateHasChanged();
+
+    }
+    
+    public class NewAuthorForm
+    {
+        private string? _authorName;
+
+        [Required(ErrorMessage = "Provide the author's name or else")]
+        [MaxLength(80)]
+        public string AuthorName
+        {
+            get => _authorName;
+            set
+            {
+                _authorName = value;
+
+                var namesArray = value.Split(" ");
+                AuthorFirstname = namesArray[0];
+                AuthorLastname = namesArray[^1];
+            }
+        }
+        
+        public string? AuthorFirstname {get;private set;}
+        
+        public string? AuthorLastname {get;private set;}
+        
+        [Required(ErrorMessage = "Provide the author's birthday or else")]
+        public DateTime? AuthorBirthday {get;set;}
+    }
     
 }

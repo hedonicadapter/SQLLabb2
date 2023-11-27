@@ -28,6 +28,17 @@ public static class DAO
         
         return await GetJSONData(res);
     }
+    
+    public static async Task<JObject?> FindAuthor(string authorFirstname, string authorLastname)
+    {
+        if (string.IsNullOrEmpty(authorFirstname) && string.IsNullOrEmpty(authorLastname)) return null;
+        
+        var res = await OpenLibrary.GetAsync($"/search/authors.json?q={authorFirstname}%20{authorLastname}");
+        
+        if (!res.IsSuccessStatusCode) return null;
+        
+        return await GetJSONData(res);
+    }
 
     private static async Task<JObject?> GetJSONData(HttpResponseMessage res)
     {
