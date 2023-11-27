@@ -14,7 +14,6 @@
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5180",
       "environmentVariables": {
-        "DB_CONNECTION_STRING":"Data Source=sqllabb2-server.database.windows.net,1433;Initial Catalog=sqllabb2-database;User ID=sqllabb2-server-admin;Password=aiCH6^e0D6B1Wxs1vTw%",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
@@ -24,7 +23,6 @@
       "launchBrowser": true,
       "applicationUrl": "https://localhost:7131;http://localhost:5180",
       "environmentVariables": {
-        "DB_CONNECTION_STRING": "Data Source=sqllabb2-server.database.windows.net,1433;Initial Catalog=sqllabb2-database;User ID=sqllabb2-server-admin;Password=aiCH6^e0D6B1Wxs1vTw%",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
@@ -32,7 +30,6 @@
       "commandName": "IISExpress",
       "launchBrowser": true,
       "environmentVariables": {
-        "DB_CONNECTION_STRING": "Data Source=sqllabb2-server.database.windows.net,1433;Initial Catalog=sqllabb2-database;User ID=sqllabb2-server-admin;Password=aiCH6^e0D6B1Wxs1vTw%",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }

@@ -113,7 +113,7 @@ public partial class Labb1DbContext : DbContext
         Books.Remove(bookToDelete);
         await SaveChangesAsync();
     }
-    public async Task DeleteAuthor(int authorId)
+    public async Task DeleteAuthor(int? authorId)
     {
         var authorToDelete = await Authors.Include(auth => auth.Books).FirstOrDefaultAsync(auth => auth.AuthorId == authorId);
         if (authorToDelete == null) return;

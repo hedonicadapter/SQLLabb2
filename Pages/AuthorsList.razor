@@ -6,7 +6,9 @@
 @using Microsoft.EntityFrameworkCore
 @using System.ComponentModel.DataAnnotations
 @using Newtonsoft.Json.Linq
-@inject Labb1DbContext Context;
+@using Position = BlazorStrap.Position
+@inject Labb1DbContext Context
+@inject IJSRuntime JS
 
 <TransitionWrapper>
     <div class="d-flex flex-row justify-content-between align-content-center pb-3">
@@ -27,20 +29,23 @@
                 </BsRow>
 
                 <BsRow Position="Position.Relative" ColumnMedium="4">
-                    <BSLabel>Firstname</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="NewAuthor.Firstname" ValidateOnInput="true" OnBlur="@UpdateForm"/>
-                    <BSFeedback For="@(() => NewAuthor.AuthorFirstname)" @onchange="StateHasChanged" ValidMessage="Isbn looks good."/>
+                    <BSLabel>Author</BSLabel>
+                    <BSInput id="datalistInput" InputType="InputType.DataList" list="datalistOptions" OnBlur="@UpdateForm" @bind-Value="@NewAuthor.AuthorName" @onchange="HandleAuthorOnChange"/>
+                    <datalist id="datalistOptions">
+                        @if (_authors != null && _authors.Any())
+                        {
+                            foreach (Author author in _authors)
+                            {
+                                <option data-authorid="@author.AuthorId" value="@author.Firstname @author.Lastname"></option>
+                            }
+                        }
+                    </datalist>
                 </BsRow>
-                <BsRow Position="Position.Relative" ColumnMedium="4">
-                    <BSLabel>Lastname</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="NewAuthor.Lastname" ValidateOnInput="true"/>
-                    <BSFeedback For="@(() => NewAuthor.AuthorLastnawme)" ValidMessage="Title looks good."/>
-                </BsRow>
-                <BsRow Position="Position.Relative" ColumnMedium="4">
-                    <BSLabel>Birthday</BSLabel>
-                    <BSInput InputType="InputType.Text" @bind-Value="NewAuthor.Birthday" ValidateOnInput="true" placeholder="eg. 'en-us'"/>
-                    <BSFeedback For="@(() => NewAuthor.AuthorBirthday)" ValidMessage="LanguageIso looks good."/>
-                </BsRow>
+                <BSRow Position="Position.Relative" ColumnMedium="4">
+                    <BSLabel>Author's birthday</BSLabel>
+                    <BSInput InputType="InputType.Date" @bind-Value="NewAuthor.AuthorBirthday" ValidateOnInput="true"/>
+                    <BSFeedback For="@(() => NewAuthor.AuthorBirthday)" ValidMessage="Description looks good."/>
+                </BSRow>
 
                 <div class="d-flex flex-row justify-content-between">
                     <div>
@@ -88,8 +93,6 @@
                         }
                     </Content>
                 </BSAccordionItem>
-                
-                
             }
         }
     </BSAccordion>
@@ -136,6 +139,8 @@
 
     private async void DeleteAuthor()
     {
+        if (NewAuthor.AuthorId == null) return;
+        
         await Context.DeleteAuthor(NewAuthor.AuthorId);
         await RefreshState();
     }
@@ -147,44 +152,57 @@
         StateHasChanged();
     }
 
-    private async Task GetAuthorInfo(){
-        // invalid isbn
+    private async Task GetAuthorInfo()
+    {
+        // invalid form
         if (!string.IsNullOrEmpty(_message)) return;
         if (string.IsNullOrEmpty(NewAuthor.AuthorFirstname)) return;
         if (string.IsNullOrEmpty(NewAuthor.AuthorLastname)) return;
         
         JObject? auth = await DAO.FindAuthor(NewAuthor.AuthorFirstname, NewAuthor.AuthorLastname);
         if (auth == null) return;
-
-        if (string.IsNullOrEmpty(NewAuthor.Title)) NewAuthor.Title = auth["title"]?.ToString();
-        if (string.IsNullOrEmpty(NewAuthor.Description)) NewAuthor.Description = auth["subtitle"]?.ToString();
-
         
-        if (NewAuthor.Published == null)
+        var possibleAuthor = auth["docs"]?.FirstOrDefault(au => au["birth_date"] != null);
+        if (possibleAuthor == null) return;
+
+    
+        if (NewAuthor.AuthorBirthday == null)
         {
-            var convertedDate = DateTimeUtil.ConvertDate(auth["publish_date"]?.ToString());
-            NewAuthor.Published = convertedDate;
+            var convertedDate = DateTimeUtil.ConvertDate(possibleAuthor["birth_date"]?.ToString());
+            NewAuthor.AuthorBirthday = convertedDate;
         }
+    }
+
+    private async Task HandleAuthorOnChange(ChangeEventArgs evt)
+    {
+        if (evt.Value != null) NewAuthor.AuthorName = evt.Value.ToString()!;
         
-        JObject? author = await DAO.GetAuthors(auth["authors"]?[0]?.ToString());
-        if (author != null)
+        int? selectedAuthorId = null;
+
+        try
         {
-            var names = author["name"]?.ToString();
-            if (string.IsNullOrEmpty(NewAuthor.AuthorFirstname) && string.IsNullOrEmpty(NewAuthor.AuthorLastname)) NewAuthor.AuthorName = names;
-                        
-            if (NewAuthor.AuthorBirthday == null)
+            selectedAuthorId = await JS.InvokeAsync<int?>("getSelectedAuthorId");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Invalid or no authorId returned from js runtime");
+        }
+        finally
+        {
+            if (selectedAuthorId == null)
             {
-                var convertedDate = DateTimeUtil.ConvertDate(author["birth_date"]?.ToString());
-                NewAuthor.AuthorBirthday = convertedDate;
+                var author = _authors?.FirstOrDefault(auth => auth.AuthorId == selectedAuthorId);
+                if (author != null) NewAuthor.AuthorBirthday = author.Birthday;
             }
-        }
         
-        StateHasChanged();
-
+            StateHasChanged();
+        }
     }
     
     public class NewAuthorForm
     {
+        public int? AuthorId { get; set; }
+        
         private string? _authorName;
 
         [Required(ErrorMessage = "Provide the author's name or else")]
