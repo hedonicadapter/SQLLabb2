@@ -167,7 +167,7 @@ public partial class Labb1DbContext : DbContext
     {
         
         optionsBuilder.EnableDetailedErrors();
-        
+
         optionsBuilder.UseSqlServer(_configuration.GetConnectionString("DB_CONNECTION_STRING"));
     }
 

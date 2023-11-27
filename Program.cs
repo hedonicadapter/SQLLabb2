@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+var provider = builder.Services.BuildServiceProvider();
+var _configuration = provider.GetRequiredService<IConfiguration>();
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -13,7 +15,7 @@ builder.Services.AddBlazorStrap();
 
 builder.Services.AddDbContext<Labb1DbContext>(options =>
 {
-    options.UseSqlServer(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"));
+    options.UseSqlServer(_configuration.GetValue<string>("DB_CONNECTION_STRING"));
 });
 
 var app = builder.Build();
