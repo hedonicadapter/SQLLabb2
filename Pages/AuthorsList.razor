@@ -189,10 +189,14 @@
         }
         finally
         {
-            if (selectedAuthorId == null)
+            if (selectedAuthorId != null)
             {
                 var author = _authors?.FirstOrDefault(auth => auth.AuthorId == selectedAuthorId);
-                if (author != null) NewAuthor.AuthorBirthday = author.Birthday;
+                if (author != null)
+                {
+                    NewAuthor.AuthorId = selectedAuthorId;
+                    NewAuthor.AuthorBirthday = author.Birthday;
+                }
             }
         
             StateHasChanged();
