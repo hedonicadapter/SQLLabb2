@@ -138,14 +138,24 @@
 
 
 @code {
-    private AddBookForm NewBook { get; set; } = new();
     private string _message = "";
+    [Parameter] public Book? InitialBook { get; set; }
     [Parameter] public IEnumerable<Inventory>? Inventory{ get; set; }
     [Parameter] public IEnumerable<Book>? Books{ get; set; }
     [Parameter] public IEnumerable<Author>? Authors{ get; set; }
     [Parameter] public Store? Store{ get; set; }
 
     [Parameter] public Func<Task> RefreshState { get; set; }
+    
+    private AddBookForm NewBook { get; set; } 
+    
+    protected override async Task OnInitializedAsync()
+    {
+        NewBook = new(InitialBook ?? null);
+
+        await base.OnInitializedAsync();
+    }
+    
     
     private void OnReset(IBSForm bSForm)
     {
@@ -293,6 +303,20 @@
             {
                 _isbn13 = value;
         }}
+
+        public AddBookForm(Book? initialBook)
+        {
+            if (initialBook == null) return;
+            
+            Title = initialBook.Title;
+            LanguageIso = initialBook.LanguageIso;
+            Price = (double)initialBook.Price;
+            Published = initialBook.Published;
+            Description = initialBook.Description;
+
+            AuthorName = initialBook.AuthorNavigation.Firstname + " " + initialBook.AuthorNavigation.Lastname;
+            AuthorBirthday = initialBook.AuthorNavigation.Birthday;
+        }
 
         [Required(ErrorMessage = "Provide a title or else")]
         public string? Title {get;set;}

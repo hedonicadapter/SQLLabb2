@@ -65,7 +65,7 @@
     {
         // Finns bättre sätt att hämta data med limits och pagination och whatever men aja
         _inventory = await Context.Inventories.Include(inv=>inv.Store).Where(inv => inv.Store.StoreId == StoreId).ToListAsync();
-        _store = _inventory.FirstOrDefault()?.Store;
+        _store = await Context.Stores.Where(store => store.StoreId == StoreId).FirstOrDefaultAsync();
         _books = await Context.Books.Include(bok=>bok.AuthorNavigation).ToListAsync();
         _authors = await Context.Authors.ToListAsync();
         

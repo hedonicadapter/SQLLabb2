@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Configuration;
 using BlazorApp2.Models;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -10,13 +12,18 @@ namespace BlazorApp2.Data;
 
 public partial class Labb1DbContext : DbContext
 {
+    
+    private static IConfiguration _configuration;
+
+
     public Labb1DbContext()
     {
     }
 
-    public Labb1DbContext(DbContextOptions<Labb1DbContext> options)
+    public Labb1DbContext(DbContextOptions<Labb1DbContext> options,IConfiguration configuration)
         : base(options)
     {
+        _configuration = configuration;
     }
 
     public virtual DbSet<Address> Addresses { get; set; }
@@ -30,10 +37,6 @@ public partial class Labb1DbContext : DbContext
     public virtual DbSet<Country> Countries { get; set; }
 
     public virtual DbSet<Employee> Employees { get; set; }
-
-    public virtual DbSet<Genre> Genres { get; set; }
-
-    public virtual DbSet<GenresBook> GenresBooks { get; set; }
 
     public virtual DbSet<Inventory> Inventories { get; set; }
 
@@ -162,12 +165,19 @@ public partial class Labb1DbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        
         optionsBuilder.EnableDetailedErrors();
-        optionsBuilder.UseSqlServer(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"));
+        
+        optionsBuilder.UseSqlServer(_configuration.GetConnectionString("DB_CONNECTION_STRING"));
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        foreach (var relationship in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
+        {
+            relationship.DeleteBehavior = DeleteBehavior.Cascade;
+        }
+        
         modelBuilder.Entity<Address>(entity =>
         {
             entity.HasKey(e => e.AddressId).HasName("PK__Addresse__091C2A1BCFB8833C");
@@ -204,18 +214,6 @@ public partial class Labb1DbContext : DbContext
             entity.HasKey(e => e.EmployeeId).HasName("PK__Employee__7AD04FF15A085FF0");
 
             entity.HasOne(d => d.PositionNavigation).WithMany(p => p.Employees).HasConstraintName("FK__Employees__Posit__31EC6D26");
-        });
-
-        modelBuilder.Entity<Genre>(entity =>
-        {
-            entity.HasKey(e => e.GenreId).HasName("PK__Genres__0385055E9473767F");
-        });
-
-        modelBuilder.Entity<GenresBook>(entity =>
-        {
-            entity.HasOne(d => d.Genre).WithMany().HasConstraintName("FK__GenresBoo__Genre__2C3393D0");
-
-            entity.HasOne(d => d.IsbnNavigation).WithMany().HasConstraintName("FK__GenresBook__ISBN__2B3F6F97");
         });
 
         modelBuilder.Entity<Inventory>(entity =>

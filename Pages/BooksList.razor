@@ -1,17 +1,23 @@
 ﻿@page "/books"
 @using BlazorApp2.Models
 @using BlazorApp2.Data
+@using BlazorStrap
 @using Microsoft.EntityFrameworkCore
 @inject Labb1DbContext Context;
 
 <TransitionWrapper>
-<h3>Books</h3>
+    <div class="d-flex flex-row justify-content-between align-content-center pb-3">
+            <h4>Books</h4>
+            <BSButton Color="BSColor.Primary" Target="addBookModal">Edit</BSButton>
+        </div>
+    
+    <BookForm RefreshState="@RefreshState" Authors="@_authors" Books="@_books" InitialBook="@ClickedBook"/>
 
-<div class="d-flex flex-column gap-3 flex-wrap">
+    <div class="d-flex flex-column gap-3 flex-wrap">
     @if (_books != null && _books.Any()){
         foreach (Book book in _books)
             {
-                <button class="card-button w-25">
+                <BSButton Target="addBookModal" class="card-button w-25" @onclick="@(()=>SetClickedBook(book))">
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex flex-row justify-content-between align-content-center">
@@ -25,7 +31,7 @@
                             <p class="card-text">@book.Description</p>
                         </div>
                     </div>
-                </button>
+                </BSButton>
             }
     }
 </div>
@@ -33,11 +39,28 @@
 
 @code {
     private IEnumerable<Book>? _books;
+    private IEnumerable<Author>? _authors;
+    private Book? ClickedBook { get; set; }
     
     protected override async Task OnInitializedAsync()
     {
         _books = await Context.Books.Include(bok=>bok.AuthorNavigation).ToListAsync();
+        _authors = await Context.Authors.ToListAsync();
         
         await base.OnInitializedAsync();
     }
+
+    private void SetClickedBook(Book book)
+    {
+        ClickedBook = book;
+        StateHasChanged();
+    }
+    
+    public async Task RefreshState()
+    { 
+        await OnInitializedAsync();
+        StateHasChanged();
+    }
+    
+    
 }

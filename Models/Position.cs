@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlazorApp2.Models;
 
-[Index("Position1", Name = "UQ__Position__5A8B58B894A6F3AC", IsUnique = true)]
+[Index("Position1", Name = "UQ__Position__5A8B58B88CC137AA", IsUnique = true)]
 public partial class Position
 {
     [Key]

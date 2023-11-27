@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlazorApp2.Models;
 
-[PrimaryKey("Isbn", "StoreId")]
+[PrimaryKey("StoreId", "Isbn")]
 [Table("Inventory")]
 public partial class Inventory
 {
