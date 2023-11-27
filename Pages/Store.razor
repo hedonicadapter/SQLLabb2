@@ -90,7 +90,7 @@
         await base.OnInitializedAsync();
     }
 
-    public async void RefreshState()
+    public async Task RefreshState()
     { 
         //TODO: refetching data shouldn't be necessary
         await OnInitializedAsync();

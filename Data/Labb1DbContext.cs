@@ -73,14 +73,16 @@ public partial class Labb1DbContext : DbContext
             if (newAuthorInfo != null) await UpsertAuthor(newAuthorInfo);
             
             await SaveChangesAsync();
-            return exists.Isbn13;
+        }
+        else
+        {
+            await Books.AddAsync(book);
+            
+            await SaveChangesAsync();
         }
 
-        await Books.AddAsync(book);
         
-        await SaveChangesAsync();
-        
-        if (store != null ) await UpsertInventory(book.Isbn13, quantity, store);
+        if (store != null) await UpsertInventory(book.Isbn13, quantity, store);
         await SaveChangesAsync();
         
         return book.Isbn13; // behövs inte men det blir consistent med den andra upsert
@@ -119,6 +121,7 @@ public partial class Labb1DbContext : DbContext
         if (existingInventory != null) existingInventory.Quantity = quantity;
     }
     
+    // TODO: What was I cooking here
     // public async Task<List<dynamic>>? GetStores(params string[] fields)
     // {
     //     var keys = GetForeignKeys(this, Stores);

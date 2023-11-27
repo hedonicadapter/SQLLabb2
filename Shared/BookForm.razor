@@ -144,20 +144,22 @@
     [Parameter] public IEnumerable<Author>? Authors{ get; set; }
     [Parameter] public Store? Store{ get; set; }
 
-    [Parameter] public Action RefreshState { get; set; }
+    [Parameter] public Func<Task> RefreshState { get; set; }
     
     private void OnReset(IBSForm bSForm)
     {
         bSForm.Reset();
     }
     
-    private void OnSubmit(EditContext e)
+    private async void OnSubmit(EditContext e)
     {
-        if (e.Validate()) CreateBook();
-        RefreshState?.Invoke();
+        if (e.Validate())
+        {
+            await CreateBook();
+        }
     }
 
-    private async void CreateBook()
+    private async Task CreateBook()
     {
         Author author = new Author { Firstname = NewBook.AuthorFirstname!, Lastname = NewBook.AuthorLastname!, Birthday = NewBook.AuthorBirthday };
         var authorId = await Context.UpsertAuthor(author);
@@ -172,12 +174,13 @@
         );
         
         await Context.UpsertBook(book, NewBook.Quantity, Store);
-        StateHasChanged();
+        await RefreshState?.Invoke();
     }
 
     private async void DeleteBook()
     {
         await Context.DeleteBook(NewBook.Isbn13!);
+        await RefreshState?.Invoke();
     }
 
     private async Task UpdateForm()
